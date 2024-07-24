@@ -1,0 +1,8 @@
+pandas==1.3.5
+fastapi==0.70.1
+starlette==0.16.0
+pydantic==1.9.0
+prometheus_client==0.12.0
+prometheus_fastapi_instrumentator==5.7.1
+uvicorn==0.16.0
+scikit-learn==1.0.2
