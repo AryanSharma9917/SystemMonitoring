@@ -23,7 +23,7 @@ There are only two prerequisites:
 <br>
 
 ``` bash
-git clone https://github.com/silverstone1903/reco-model-monitoring
+git clone https://github.com/AryanSharma9917/SystemMonitoring.git
 ```
 
 ## Usage
