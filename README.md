@@ -71,7 +71,7 @@ docker-compose logs --tail 50
 
 <br>
 
-Blog post (in Turkish): [Reco Model Monitoring - FastAPI + Prometheus + Grafana](https://silverstone1903.github.io/posts/2021/12/reco-model-monitoring)
+[Docker Image](https://hub.docker.com/r/aryansharma04/systemmonitoring)
 
 <br>
 
