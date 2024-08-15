@@ -71,7 +71,10 @@ docker-compose logs --tail 50
 
 <br>
 
-[Docker Image](https://hub.docker.com/r/aryansharma04/systemmonitoring)
+Docker Image
+``` bash
+https://hub.docker.com/r/aryansharma04/systemmonitoring
+```
 
 <br>
 
