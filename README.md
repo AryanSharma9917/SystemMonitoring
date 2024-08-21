@@ -78,7 +78,7 @@ https://hub.docker.com/r/aryansharma04/systemmonitoring
 
 <br>
 
-# Screenshots
+# Screenshots :
 ## API
 <p align="center">
   <img src="assets/api-response-item.png"  width="800">
