@@ -15,7 +15,7 @@ FastAPI-based project integrating Prometheus and Grafana for monitoring and enha
 
 ## Installation
 
-There are only two prerequisites:
+There are only two prerequisites Docker and Docker-compose: 
 
 * [Docker](https://docs.docker.com/get-docker/)
 * [Docker-compose](https://docs.docker.com/compose/install/)
