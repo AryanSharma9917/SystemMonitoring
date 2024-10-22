@@ -1,7 +1,7 @@
 # SystemMonitoring
 FastAPI-based project integrating Prometheus and Grafana for monitoring and enhanced with AI-driven recommendation capabilities.
 
-# FastAPI + promethues + Grafana
+# FastAPI + promethues + Grafana :
 
 <p style="text-align:center">
 <img src="https://fastapi.tiangolo.com/img/logo-margin/logo-teal.png" width="200" > 
