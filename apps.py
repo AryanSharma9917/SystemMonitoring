@@ -1,15 +1,5 @@
-from fastapi import FastAPI
-from prometheus_fastapi_instrumentator import Instrumentator
+"""Compatibility entry point for existing `uvicorn apps:app` commands."""
 
-app = FastAPI()
+from system_monitoring.main import create_app
 
-# Create metrics endpoint
-Instrumentator().instrument(app).expose(app)
-
-@app.get("/")
-def read_root():
-    return {"message": "Hello World"}
-
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}
+app = create_app()

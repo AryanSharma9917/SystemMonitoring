@@ -1,0 +1,36 @@
+[project]
+name = "system-monitoring"
+version = "0.2.0"
+description = "A practical foundation for service monitoring and incident tracking."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.115,<1",
+    "pydantic-settings>=2.6,<3",
+    "prometheus-client>=0.21,<1",
+    "uvicorn>=0.34,<1",
+]
+
+[project.optional-dependencies]
+retail = ["pandas>=2.2,<3", "scikit-learn>=1.5,<2"]
+
+[dependency-groups]
+dev = ["httpx>=0.28,<1", "pytest>=8.3,<10", "ruff>=0.11,<1"]
+
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["system_monitoring"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
