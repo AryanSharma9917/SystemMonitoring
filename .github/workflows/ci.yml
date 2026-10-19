@@ -1,24 +1,34 @@
-name: Python CI
+name: Application checks
 
 on:
   push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
-  test:
+  application:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v6
         with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: pip install -r req.txt
-
-      - name: Syntax check
-        run: python -m py_compile $(find . -name "*.py")
+          version: "0.12.23"
+      - name: Install Python and locked dependencies
+        run: uv sync --locked --python 3.12
+      - name: Check code quality
+        run: |
+          uv run --locked ruff check system_monitoring apps.py tests
+          uv run --locked ruff format --check system_monitoring apps.py tests
+      - name: Check application behavior
+        run: uv run --locked pytest -q
+      - name: Validate Compose configuration
+        env:
+          GRAFANA_ADMIN_PASSWORD: ci-configuration-validation-only
+        run: docker compose config --quiet
+      - name: Build the application image
+        run: docker build --tag system-monitoring:ci .
+      - name: Check container startup and persistent storage
+        run: bash scripts/check-container.sh system-monitoring:ci
