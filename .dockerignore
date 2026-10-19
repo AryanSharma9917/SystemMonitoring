@@ -1,0 +1,9 @@
+*
+!Dockerfile
+!pyproject.toml
+!uv.lock
+!README.md
+!system_monitoring/
+!system_monitoring/**
+**/__pycache__/
+*.pyc

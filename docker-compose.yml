@@ -1,48 +1,59 @@
-version: "3.9"
-
 services:
-  # FastAPI App
   fastapi:
     build: .
-    container_name: systemmonitoring_app
     ports:
-      - "8000:8000"
-    depends_on:
-      - prometheus
-    networks:
-      - monitoring
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    environment:
+      MONITOR_ENVIRONMENT: ${MONITOR_ENVIRONMENT:-development}
+      MONITOR_LOG_LEVEL: ${MONITOR_LOG_LEVEL:-INFO}
+      MONITOR_DATABASE_PATH: /var/lib/system-monitoring/monitoring.sqlite3
+    volumes:
+      - application-data:/var/lib/system-monitoring
+    read_only: true
+    tmpfs:
+      - /tmp
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
-  # Prometheus
   prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
+    # Prometheus 3.15.0, pinned to the verified image manifest.
+    image: prom/prometheus@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-    ports:
-      - "9090:9090"
-    networks:
-      - monitoring
+      - prometheus-data:/prometheus
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
-  # Grafana
   grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - ./provisioning:/etc/grafana/provisioning
-      - grafana-data:/var/lib/grafana
+    # Grafana 13.2.4, pinned to the verified image manifest.
+    image: grafana/grafana@sha256:dbbc38ea21103cefb50396340cd88afec779c7e070b0a7bf5a75b4ce46651d3f
     ports:
-      - "3000:3000"
-    depends_on:
-      - prometheus
-    networks:
-      - monitoring
-
-networks:
-  monitoring:
-    driver: bridge
+      - "127.0.0.1:${GRAFANA_PORT:-3000}:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_PLUGINS_PREINSTALL_DISABLED: "true"
+    volumes:
+      - ./provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
 volumes:
+  application-data:
+  prometheus-data:
   grafana-data:
