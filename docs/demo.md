@@ -11,10 +11,17 @@ monitor's approved-origin lists with the sample origin.
 cp .env.example .env
 # Set GRAFANA_ADMIN_PASSWORD in .env if you have not already configured it.
 docker compose -f docker-compose.yml -f compose.demo.yml up --build -d
+# Set MONITOR_ADMIN_PASSWORD securely in the process environment for sign-in.
 python3 scripts/demonstrate-outage.py
 ```
 
-The script registers a new service, waits for a scheduled success, changes the sample
+On a new installation, create an administrator first using
+`docker compose exec fastapi python -m system_monitoring.admin`. If you started only
+the combined demonstration files, include those same `-f` arguments with `exec`.
+The workspace is available at the application root after signing in.
+
+The script signs in using MONITOR_ADMIN_USERNAME (default admin) and
+MONITOR_ADMIN_PASSWORD from its process environment, then registers a new service, waits for a scheduled success, changes the sample
 to return 503, waits for two consecutive failures and exactly one open incident,
 restores HTTP 200, then verifies the same incident is recovered. It does not bypass
 the scheduler with manual checks. It normally takes roughly 30–45 seconds, with
@@ -23,6 +30,9 @@ service; use `--cleanup` when you do not need to keep the demonstration history.
 
 The sample has a separate `/live` container health endpoint that stays available
 during simulated failures; Compose startup checks that endpoint.
+
+Application management routes require a session, but the isolated sample control
+API deliberately remains unauthenticated and must stay local.
 
 The sample always resets to healthy on process restart. Normal targets, observations
 and incidents remain in the monitoring application's persistent volume.
