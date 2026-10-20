@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#111d1b" />
+    <meta
+      name="description"
+      content="Service health, incident history and alert delivery in one workspace."
+    />
+    <title>System Monitoring</title>
+    <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/assets/styles.css" />
+    <script src="/assets/app.js" defer></script>
+  </head>
+  <body>
+    <section id="login-screen" class="login-screen">
+      <div class="login-story">
+        <a class="brand" href="/">
+          <img src="/assets/icon.svg" alt="" width="34" height="34" /><span
+            >System Monitoring</span
+          ></a
+        >
+        <div class="login-copy">
+          <span class="eyebrow">LESS GUESSWORK. MORE CLARITY.</span>
+          <h1>Know what’s up.<br />See what happened.</h1>
+          <p>
+            Service health, incident history, and recovery.<br />One clear view
+            of the systems you look after.
+          </p>
+          <div class="sample-pulse" aria-hidden="true">
+            <svg viewBox="0 0 500 130">
+              <path
+                d="M0 75H100L120 55L140 95L165 25L190 110L215 65L235 75H500"
+              />
+            </svg>
+          </div>
+          <div class="login-note">
+            <span class="dot green"></span>Built for the people keeping services
+            running.
+          </div>
+        </div>
+        <span class="login-footer">YOUR MONITORING WORKSPACE</span>
+      </div>
+      <div class="login-side">
+        <form id="login-form" class="login-form">
+          <span class="eyebrow muted">WELCOME BACK</span>
+          <h2>Sign in to your workspace</h2>
+          <p class="muted">Use your administrator account to continue.</p>
+          <label for="username">Username</label
+          ><input
+            id="username"
+            name="username"
+            autocomplete="username"
+            required
+            maxlength="100"
+            autofocus
+          />
+          <label for="password">Password</label
+          ><input
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            required
+            maxlength="1024"
+          />
+          <p id="login-error" class="form-error" role="alert" hidden></p>
+          <button class="button primary wide" type="submit">
+            Sign in <span aria-hidden="true">→</span>
+          </button>
+          <p class="login-help">
+            Access is managed by your installation’s administrator.
+          </p>
+        </form>
+      </div>
+    </section>
+    <div id="workspace" class="workspace" hidden>
+      <aside class="sidebar">
+        <a class="brand" href="#overview"
+          ><img src="/assets/icon.svg" alt="" width="31" height="31" /><span
+            >System<br /><strong>Monitoring</strong></span
+          ></a
+        >
+        <span class="nav-label">WORKSPACE</span>
+        <nav aria-label="Workspace">
+          <button data-nav="overview" aria-current="page">
+            <span class="nav-icon" aria-hidden="true"
+              ><svg class="ui-icon" aria-hidden="true">
+                <use href="/assets/icons.svg#overview"></use></svg></span
+            >Overview
+          </button>
+          <button data-nav="services">
+            <span class="nav-icon" aria-hidden="true"
+              ><svg class="ui-icon" aria-hidden="true">
+                <use href="/assets/icons.svg#services"></use></svg></span
+            >Services
+          </button>
+          <button data-nav="incidents">
+            <span class="nav-icon" aria-hidden="true"
+              ><svg class="ui-icon" aria-hidden="true">
+                <use href="/assets/icons.svg#flag"></use></svg></span
+            >Incidents<span id="incident-badge" class="nav-count" hidden></span>
+          </button>
+          <button data-nav="notifications">
+            <span class="nav-icon" aria-hidden="true"
+              ><svg class="ui-icon" aria-hidden="true">
+                <use href="/assets/icons.svg#bell"></use></svg></span
+            >Notifications
+          </button>
+        </nav>
+        <div class="sidebar-bottom">
+          <div class="collector">
+            <span class="dot green" id="collector-dot"></span
+            ><span id="collector-label">Monitoring active</span>
+          </div>
+          <p>Your services. A clearer picture.</p>
+          <a href="/docs" target="_blank" rel="noreferrer"
+            >API documentation
+            <span aria-hidden="true"
+              ><svg class="ui-icon" aria-hidden="true">
+                <use href="/assets/icons.svg#arrow"></use></svg></span
+          ></a>
+        </div>
+      </aside>
+      <div class="main-shell">
+        <header class="topbar">
+          <div>
+            <span class="breadcrumb"
+              >Workspace <span aria-hidden="true">/</span></span
+            >
+            <span id="breadcrumb">Overview</span>
+          </div>
+          <div class="operator">
+            <span id="environment" class="environment">Development</span
+            ><span class="avatar" aria-hidden="true">A</span
+            ><span id="operator-name">Administrator</span
+            ><button id="logout" class="text-button">Sign out</button>
+          </div>
+        </header>
+        <main id="main-content" tabindex="-1">
+          <div class="page-heading">
+            <div>
+              <span class="eyebrow muted">YOUR MONITORING WORKSPACE</span>
+              <h1 id="page-title">Service overview</h1>
+              <p id="page-description">
+                A clear view of service health and recent activity.
+              </p>
+            </div>
+            <div class="heading-actions">
+              <label class="sr-only" for="window">Observation window</label
+              ><select id="window">
+                <option value="1">Last hour</option>
+                <option value="24" selected>Last 24 hours</option>
+                <option value="168">Last 7 days</option></select
+              ><button
+                id="refresh"
+                class="button secondary"
+                aria-label="Refresh workspace"
+              >
+                ↻ <span>Refresh</span></button
+              ><button id="add-service" class="button primary">
+                + Add service
+              </button>
+            </div>
+          </div>
+          <div
+            id="workspace-error"
+            class="error-banner"
+            role="alert"
+            hidden
+          ></div>
+          <div class="sync-line">
+            <span class="dot green"></span
+            ><span id="sync-status">Loading observations…</span
+            ><span class="sync-note">Updates every 5 seconds</span>
+          </div>
+          <div id="view" aria-busy="true"></div>
+        </main>
+        <footer class="page-footer">
+          <span>System Monitoring</span><span>Clarity in every check.</span>
+        </footer>
+      </div>
+    </div>
+    <dialog id="service-dialog" aria-labelledby="service-dialog-title">
+      <form id="service-form">
+        <div class="dialog-heading">
+          <div>
+            <span class="eyebrow muted">SERVICE CONFIGURATION</span>
+            <h2 id="service-dialog-title">Add a service</h2>
+          </div>
+          <button
+            type="button"
+            class="icon-button"
+            data-close-dialog
+            aria-label="Close service form"
+          >
+            ×
+          </button>
+        </div>
+        <p class="muted">
+          Tell us where to check and when a failure needs attention.
+        </p>
+        <label for="service-name">Service name</label
+        ><input
+          id="service-name"
+          name="name"
+          required
+          maxlength="100"
+          placeholder="e.g. Payments API"
+        />
+        <label for="service-url">Health check URL</label
+        ><input
+          id="service-url"
+          name="url"
+          type="url"
+          required
+          maxlength="2048"
+          placeholder="https://api.example.com/health"
+        />
+        <p id="origin-hint" class="field-hint"></p>
+        <div class="form-grid">
+          <div>
+            <label for="service-interval">Check every (seconds)</label
+            ><input
+              id="service-interval"
+              name="check_interval_seconds"
+              type="number"
+              min="10"
+              max="86400"
+              value="60"
+              required
+            />
+          </div>
+          <div>
+            <label for="service-timeout">Timeout (seconds)</label
+            ><input
+              id="service-timeout"
+              name="timeout_seconds"
+              type="number"
+              min="1"
+              max="30"
+              value="5"
+              required
+            />
+          </div>
+          <div>
+            <label for="service-threshold">Failures before an incident</label
+            ><input
+              id="service-threshold"
+              name="failure_threshold"
+              type="number"
+              min="1"
+              max="20"
+              value="3"
+              required
+            />
+          </div>
+          <div>
+            <label for="service-status">Expected HTTP status</label
+            ><input
+              id="service-status"
+              name="expected_status"
+              type="number"
+              min="200"
+              max="599"
+              value="200"
+              required
+            />
+          </div>
+        </div>
+        <p id="service-error" class="form-error" role="alert" hidden></p>
+        <div class="dialog-footer">
+          <button type="button" class="button secondary" data-close-dialog>
+            Cancel</button
+          ><button type="submit" class="button primary" id="save-service">
+            Add service
+          </button>
+        </div>
+      </form>
+    </dialog>
+    <div id="toast" class="toast" role="status" hidden></div>
+    <noscript
+      ><p class="error-banner">
+        JavaScript is required for the monitoring workspace. The authenticated
+        API remains available.
+      </p></noscript
+    >
+  </body>
+</html>

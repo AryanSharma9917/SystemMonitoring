@@ -28,6 +28,10 @@ def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(HTTPException)
     async def http_error(request: Request, error: HTTPException) -> JSONResponse:
         codes = {
+            401: "authentication_required",
+            403: "forbidden",
+            409: "conflict",
+            429: "rate_limited",
             404: "not_found",
             405: "method_not_allowed",
             422: "validation_error",

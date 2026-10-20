@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 
 def test_root_describes_application(client):
-    response = client.get("/")
+    response = client.get("/api/v1/about")
     assert response.status_code == 200
     assert response.json()["name"] == "System Monitoring"
     assert response.json()["docs"] == "/docs"

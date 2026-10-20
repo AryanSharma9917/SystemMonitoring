@@ -40,9 +40,13 @@ def test_scheduler_checks_real_service_and_stops_cleanly(tmp_path, target_server
         approved_origins=[target_server.url],
         private_origins=[target_server.url],
         scheduler_enabled=True,
+        admin_password="test-operator-password",
     )
     application = create_app(settings)
     with TestClient(application) as client:
+        from conftest import sign_in
+
+        sign_in(client)
         service = client.post(
             "/api/v1/services",
             json={
@@ -68,6 +72,9 @@ def test_scheduler_checks_real_service_and_stops_cleanly(tmp_path, target_server
     with TestClient(
         create_app(settings.model_copy(update={"scheduler_enabled": False}))
     ) as restarted:
+        from conftest import sign_in
+
+        sign_in(restarted)
         assert restarted.get(path).json()["status"] == "down"
         assert len(restarted.get("/api/v1/incidents?status=open").json()) == 1
         assert "monitor_service_up{" in restarted.get("/metrics").text
