@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Exercise the built image without depending on host ports or Compose secrets.
 set -euo pipefail
-image="${1:-system-monitoring:day1}"
+image="${1:-system-monitoring:local}"
 container="monitoring-check-$$"
 volume="monitoring-check-data-$$"
 cleanup() {

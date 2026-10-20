@@ -17,8 +17,8 @@ jobs:
       - name: Validate the application before publishing
         run: |
           uv sync --locked --python 3.12
-          uv run --locked ruff check system_monitoring apps.py tests
-          uv run --locked ruff format --check system_monitoring apps.py tests
+          uv run --locked ruff check system_monitoring apps.py tests scripts
+          uv run --locked ruff format --check system_monitoring apps.py tests scripts
           uv run --locked pytest -q
           docker build --tag system-monitoring:release .
           bash scripts/check-container.sh system-monitoring:release

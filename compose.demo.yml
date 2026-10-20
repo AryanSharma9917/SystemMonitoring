@@ -1,0 +1,25 @@
+# Optional, isolated demonstration target. Never include this file in a public deployment.
+services:
+  fastapi:
+    environment:
+      MONITOR_APPROVED_ORIGINS: '["http://demo-service:8080"]'
+      MONITOR_PRIVATE_ORIGINS: '["http://demo-service:8080"]'
+
+  demo-service:
+    image: system-monitoring:local
+    command: ["uvicorn", "system_monitoring.demo:app", "--host", "0.0.0.0", "--port", "8080", "--no-access-log"]
+    ports:
+      - "127.0.0.1:${DEMO_PORT:-8081}:8080"
+    read_only: true
+    tmpfs:
+      - /tmp
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/live', timeout=2)"]
+      interval: 3s
+      timeout: 3s
+      start_period: 3s
+      retries: 10
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
