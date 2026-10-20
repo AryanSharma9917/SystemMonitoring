@@ -1,37 +1,38 @@
-# Four-day delivery plan
+# Delivery roadmap
 
-## Day 1: Foundation
+Each milestone targets one focused workday, followed by review on its own branch.
+Commit messages describe the change in ordinary language. Distinct areas receive
+separate coherent commits; the project owner reviews and merges into `main`.
 
-Modern Python dependencies and locking; application structure; validated settings;
-SQLite persistence; structured logs and errors; readiness; reproducible Docker;
-meaningful CI and restart validation. See `day-1.md` for the review scope.
+## Application foundation — implemented
 
-## Day 2: Monitoring workflow
+Modern Python dependencies and locking, application structure, validated settings,
+SQLite persistence, structured logs/errors, readiness, reproducible Docker and CI.
+See [foundation notes](foundation.md).
 
-Service registration, approved target validation, bounded HTTP checks, failure
-thresholds, incident opening/recovery, corrected Prometheus/Grafana queries, and a
-controlled sample service. Acceptance: an induced outage opens one incident and
-recovery resolves it with accurate metrics.
+## Monitoring workflow — implemented
 
-## Day 3: Product dashboard
+Service registration and updates, operator-approved targets, bounded HTTP checks,
+consecutive failure thresholds, incident opening/recovery, persistent check history,
+corrected dashboards and a controlled outage target. Acceptance: an induced outage
+opens one incident and recovery resolves it with verifiable observations.
+See the [monitoring guide](monitoring.md) and [demonstration](demo.md).
 
-Responsive service overview and details, incident history, authentication for
-management, one configured webhook channel with duplicate suppression and recovery
-notifications, and clearly defined availability summaries. Acceptance: the complete
-add-service → outage → alert → recovery journey works through the UI.
+## Product dashboard — upcoming
 
-## Day 4: Website and demo
+Responsive service overview/details, incident history, administrator authentication,
+one configured webhook channel with duplicate suppression and recovery notifications,
+and clearly defined availability summaries. Acceptance: add-service → outage →
+alert → recovery works through the interface.
 
-Companion website inspired by https://aryansharma9917.github.io/Codewise-CLI/;
+## Website and demonstration polish — upcoming
+
+Companion website inspired by https://aryansharma9917.github.io/Codewise-CLI/,
 actual screenshots, installation guidance, architecture, contact/demo action,
-controlled demo, deployment guidance, backup/recovery instructions, and a recorded
-walkthrough. Acceptance: a fresh installation supports a repeatable demonstration
-and the website accurately describes what the software does.
+deployment guidance, backup/recovery practice, and a recorded walkthrough.
+Acceptance: a fresh installation supports a repeatable demonstration and the
+website accurately describes the software.
 
 Initial service offering: isolated installations with setup, dashboard configuration,
-alert tuning, and maintenance. Multi-tenant accounts, billing, distributed collectors,
-and AI diagnosis require later work and operational validation.
-
-Use descriptive commit messages without conventional prefixes. Keep distinct areas
-in separate coherent commits. Work on a review branch and leave merging to `main`
-to the project owner after review.
+alert tuning and maintenance. Multi-tenant accounts, billing, distributed collectors,
+and AI diagnosis need later implementation and operational validation.
