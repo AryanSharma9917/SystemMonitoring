@@ -34,8 +34,9 @@ at check time, so registration does not claim that a service is reachable.
 ## API
 
 Base path: `/api/v1`. The OpenAPI explorer at `/docs` describes request and response
-fields. This API currently assumes a trusted local operator; authentication is
-upcoming. Do not expose it publicly.
+fields. This API requires an administrator session and CSRF protection for mutations.
+See [administrator access](workspace.md). Keep operational interfaces local and
+require HTTPS before exposing the workspace.
 
 | Method and path | Behavior |
 | --- | --- |
@@ -139,12 +140,13 @@ expires. These charts show observed checks, not a contractual uptime calculation
 
 Prometheus scrapes every 15 seconds, so allow two scrapes for rates to populate.
 HTTP latency histograms measure time to response headers; CPU rates are cores used,
-not host-wide utilization. No notification delivery is implemented yet.
+not host-wide utilization. The workspace provides durable [webhook delivery](notifications.md) for incident transitions.
 
 ## Storage
 
-Schema version 2 migrates the original inventory and incident tables without
-dropping them and adds observation history, configuration revisions and leases.
+Schema version 3 preserves inventory, observations, incidents and leases while
+adding administrator sessions, an incident notification outbox and availability
+epochs.
 Migrations and their version update commit together. An incompatible/newer schema
 prevents startup. Back up before upgrading and keep the old image for rollback;
 rollback requires restoring the matching database backup, not downgrading in place.
@@ -171,14 +173,10 @@ invalidates in-flight results; use pause if you want to keep the evidence.
 
 ## Verification
 
-The monitoring workflow was validated with 79 passing application checks covering
-real HTTP responses, redirects, timeouts, DNS/network policy, schema migration and
-rollback, concurrency, stale results, API operations and restart persistence. Ruff
-lint and formatting checks pass. The test runner reports one upstream
-Starlette/AnyIO deprecation warning; no checks are skipped or expected to fail.
-
-The container check verifies non-root startup with a read-only root filesystem,
-health/metrics and retained records across restart. The full Compose demonstration
-verifies scheduled healthy → failure threshold → one incident → recovery, and the
-stack checker executes all 13 dashboard queries through Grafana against actual
-Prometheus observations. CI runs these checks on pushes and pull requests.
+The automated suite covers HTTP responses, redirects, timeouts, DNS policy, schema
+migration and rollback, concurrency, stale results, authentication, CSRF, account
+recovery, observed availability, transactional notifications and actual delivery.
+Ruff checks source and operational scripts. Browser checks exercise the complete
+interface with real checks and a controlled webhook receiver, including retries.
+The container check verifies non-root/read-only startup and restart persistence.
+CI also runs the scheduled outage demonstration and all 13 Grafana queries.

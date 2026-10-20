@@ -11,6 +11,7 @@ def settings(tmp_path):
         database_path=tmp_path / "monitoring.sqlite3",
         _env_file=None,
         scheduler_enabled=False,
+        admin_password="test-operator-password",
         approved_origins=["https://example.com"],
     )
 
@@ -23,6 +24,7 @@ def app(settings):
 @pytest.fixture
 def client(app):
     with TestClient(app) as client:
+        sign_in(client)
         yield client
 
 
@@ -59,6 +61,47 @@ def target_server():
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     server.url = f"http://127.0.0.1:{server.server_port}"
+    yield server
+    server.shutdown()
+    server.server_close()
+    thread.join(timeout=2)
+
+
+def sign_in(client, password="test-operator-password"):
+    response = client.post("/api/auth/login", json={"username": "admin", "password": password})
+    assert response.status_code == 200, response.text
+    client.headers["X-CSRF-Token"] = response.json()["csrf_token"]
+    return response
+
+
+@pytest.fixture
+def webhook_server():
+    import json
+    import threading
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    class Receiver(BaseHTTPRequestHandler):
+        def do_POST(self):
+            self.server.events.append(
+                (
+                    json.loads(self.rfile.read(int(self.headers["Content-Length"]))),
+                    self.headers.get("Idempotency-Key"),
+                )
+            )
+            self.send_response(self.server.status)
+            if self.server.status == 302:
+                self.send_header("Location", "http://169.254.169.254/")
+            self.end_headers()
+
+        def log_message(self, *args):
+            pass
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Receiver)
+    server.status = 204
+    server.events = []
+    server.url = f"http://127.0.0.1:{server.server_port}/events"
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
     yield server
     server.shutdown()
     server.server_close()

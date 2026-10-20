@@ -24,6 +24,16 @@ jobs:
           uv run --locked ruff format --check system_monitoring apps.py tests scripts
       - name: Check application behavior
         run: uv run --locked pytest -q
+      - name: Install Chromium for browser checks
+        run: uv run --locked playwright install --with-deps chromium
+      - name: Check the administrator workspace and alert delivery
+        run: uv run --locked python scripts/check-browser.py --artifacts browser-artifacts
+      - name: Preserve browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitoring-workspace
+          path: browser-artifacts/
       - name: Validate Compose configuration
         env:
           GRAFANA_ADMIN_PASSWORD: ci-configuration-validation-only
@@ -36,6 +46,7 @@ jobs:
         run: bash scripts/check-container.sh system-monitoring:ci
       - name: Exercise scheduled outage detection and recovery
         env:
+          MONITOR_ADMIN_PASSWORD: isolated-ci-operator-password
           GRAFANA_ADMIN_PASSWORD: isolated-ci-stack-only
           COMPOSE_PROJECT_NAME: monitoring-ci
         run: |
@@ -46,12 +57,14 @@ jobs:
       - name: Show stack logs after a failure
         if: failure()
         env:
+          MONITOR_ADMIN_PASSWORD: isolated-ci-operator-password
           GRAFANA_ADMIN_PASSWORD: isolated-ci-stack-only
           COMPOSE_PROJECT_NAME: monitoring-ci
         run: docker compose -f docker-compose.yml -f compose.demo.yml logs --tail 80
       - name: Remove the isolated CI stack
         if: always()
         env:
+          MONITOR_ADMIN_PASSWORD: isolated-ci-operator-password
           GRAFANA_ADMIN_PASSWORD: isolated-ci-stack-only
           COMPOSE_PROJECT_NAME: monitoring-ci
         run: docker compose -f docker-compose.yml -f compose.demo.yml down --volumes

@@ -8,6 +8,8 @@ import time
 import urllib.error
 import urllib.request
 
+from operator_client import OperatorClient
+
 
 def request(url, payload=None, method=None):
     body = None if payload is None else json.dumps(payload).encode()
@@ -44,10 +46,11 @@ def main():
     args = parser.parse_args()
     api, demo = args.api_url.rstrip("/"), args.demo_url.rstrip("/")
     service = None
+    administrator = OperatorClient(api)
     try:
         request(demo + "/mode", {"mode": "healthy"})
-        service = request(
-            api + "/api/v1/services",
+        service = administrator.request(
+            "/api/v1/services",
             {
                 "name": "Outage demonstration",
                 "url": args.target_url,
@@ -56,24 +59,28 @@ def main():
                 "failure_threshold": 2,
             },
         )
-        service_url = api + "/api/v1/services/" + service["id"]
+        service_url = "/api/v1/services/" + service["id"]
         print("Registered demonstration service: " + service["id"], flush=True)
-        wait_for(lambda: request(service_url)["status"] == "healthy", "Scheduled check is healthy")
+        wait_for(
+            lambda: administrator.request(service_url)["status"] == "healthy",
+            "Scheduled check is healthy",
+        )
         request(demo + "/mode", {"mode": "failing"})
         wait_for(
-            lambda: request(service_url)["status"] == "down", "Sustained failure opened an incident"
+            lambda: administrator.request(service_url)["status"] == "down",
+            "Sustained failure opened an incident",
         )
-        incidents_url = api + "/api/v1/incidents?service_id=" + service["id"]
-        incidents = request(incidents_url)
+        incidents_url = "/api/v1/incidents?service_id=" + service["id"]
+        incidents = administrator.request(incidents_url)
         assert len(incidents) == 1 and incidents[0]["resolved_at"] is None
         request(demo + "/mode", {"mode": "healthy"})
         wait_for(
-            lambda: request(service_url)["status"] == "healthy",
+            lambda: administrator.request(service_url)["status"] == "healthy",
             "Recovery check restored healthy status",
         )
-        incidents = request(incidents_url)
+        incidents = administrator.request(incidents_url)
         assert len(incidents) == 1 and incidents[0]["resolution"] == "recovered"
-        checks = request(service_url + "/checks")
+        checks = administrator.request(service_url + "/checks")
         assert {check["outcome"] for check in checks} == {"success", "failure"}
         print(
             "Verified automatic outage detection, one incident, history, and recovery.", flush=True
@@ -82,7 +89,9 @@ def main():
         with contextlib.suppress(OSError):
             request(demo + "/mode", {"mode": "healthy"})
         if service and args.cleanup:
-            request(api + "/api/v1/services/" + service["id"], method="DELETE")
+            administrator.request("/api/v1/services/" + service["id"], method="DELETE")
+
+        administrator.close()
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ from time import perf_counter
 
 import aiohttp
 
+from system_monitoring import __version__
 from system_monitoring.models import ProbeResult
 from system_monitoring.targets import ApprovedResolver, TargetPolicy
 
@@ -39,7 +40,7 @@ class HttpChecker:
                     read_bufsize=1024,
                     max_line_size=4096,
                     max_field_size=4096,
-                    headers={"User-Agent": "SystemMonitoring/0.3"},
+                    headers={"User-Agent": f"SystemMonitoring/{__version__}"},
                     cookie_jar=aiohttp.DummyCookieJar(),
                 ) as session:
                     async with session.get(url, allow_redirects=False) as response:

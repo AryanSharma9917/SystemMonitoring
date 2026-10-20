@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 from system_monitoring.models import ProbeResult, ServiceConfiguration
+from system_monitoring.notifications import enqueue
 from system_monitoring.storage import Database
 
 
@@ -21,10 +22,17 @@ def timestamp() -> str:
 
 
 class Repository:
-    def __init__(self, database: Database, service_limit: int, history_limit: int) -> None:
+    def __init__(
+        self,
+        database: Database,
+        service_limit: int,
+        history_limit: int,
+        notifications_enabled: bool = False,
+    ) -> None:
         self.database = database
         self.service_limit = service_limit
         self.history_limit = history_limit
+        self.notifications_enabled = notifications_enabled
 
     def get(self, service_id: str) -> dict:
         with self.database.connect() as connection:
@@ -91,16 +99,13 @@ class Repository:
                 raise MissingService()
             target_changed = any(old[key] != values[key] for key in ("url", "expected_status"))
             if target_changed:
-                connection.execute(
-                    """UPDATE incidents SET resolved_at=?, resolution='configuration_changed'
-                    WHERE service_id=? AND resolved_at IS NULL""",
-                    (timestamp(), service_id),
-                )
+                self.close_incidents(connection, dict(old), timestamp(), "configuration_changed")
                 connection.execute(
                     """UPDATE services SET last_outcome='unknown', last_checked_at=NULL,
                     last_check_timestamp=NULL, last_status_code=NULL, last_duration_seconds=NULL,
-                    last_error=NULL WHERE id=?""",
-                    (service_id,),
+                    last_error=NULL, availability_since=?, availability_revision=revision+1
+                    WHERE id=?""",
+                    (timestamp(), service_id),
                 )
             policy_changed = any(old[key] != values[key] for key in values if key != "name")
             failures = 0 if policy_changed else old["consecutive_failures"]
@@ -120,6 +125,11 @@ class Repository:
                 "SELECT id FROM services WHERE id=?", (service_id,)
             ).fetchone():
                 raise MissingService()
+            connection.execute(
+                "UPDATE notifications SET status='cancelled',last_error='Service removed' "
+                "WHERE service_id=? AND status='pending'",
+                (service_id,),
+            )
             connection.execute("DELETE FROM incidents WHERE service_id=?", (service_id,))
             connection.execute("DELETE FROM services WHERE id=?", (service_id,))
 
@@ -172,19 +182,29 @@ class Repository:
                 raise ServiceConflict("Configuration changed while the check was running")
             failures = current["consecutive_failures"] + 1 if result.outcome == "failure" else 0
             if result.outcome == "success":
-                connection.execute(
-                    """UPDATE incidents SET resolved_at=?, resolution='recovered'
-                    WHERE service_id=? AND resolved_at IS NULL""",
-                    (checked_at, service_id),
-                )
+                self.close_incidents(connection, dict(current), checked_at, "recovered")
             elif result.outcome == "failure" and failures >= current["failure_threshold"]:
-                connection.execute(
+                incident_id = str(uuid4())
+                inserted = connection.execute(
                     """INSERT INTO incidents (id, service_id, opened_at, reason)
                     SELECT ?, ?, ?, ? WHERE NOT EXISTS (
                         SELECT 1 FROM incidents WHERE service_id=? AND resolved_at IS NULL
                     )""",
-                    (str(uuid4()), service_id, checked_at, result.reason, service_id),
+                    (incident_id, service_id, checked_at, result.reason, service_id),
                 )
+                if inserted.rowcount and self.notifications_enabled:
+                    enqueue(
+                        connection,
+                        dict(current),
+                        {
+                            "id": incident_id,
+                            "opened_at": checked_at,
+                            "resolved_at": None,
+                            "reason": result.reason,
+                            "resolution": None,
+                        },
+                        "incident.opened",
+                    )
             cursor = connection.execute(
                 """INSERT INTO checks
                 (service_id, revision, checked_at, outcome, status_code, duration_seconds, reason)
@@ -256,3 +276,27 @@ class Repository:
                     (*values, limit, offset),
                 )
             ]
+
+    def close_incidents(self, connection, service, when, resolution):
+        incidents = connection.execute(
+            "SELECT * FROM incidents WHERE service_id=? AND resolved_at IS NULL", (service["id"],)
+        ).fetchall()
+        connection.execute(
+            "UPDATE incidents SET resolved_at=?,resolution=? "
+            "WHERE service_id=? AND resolved_at IS NULL",
+            (when, resolution, service["id"]),
+        )
+        if self.notifications_enabled:
+            for incident in incidents:
+                enqueue(
+                    connection,
+                    service,
+                    {
+                        "id": incident["id"],
+                        "opened_at": incident["opened_at"],
+                        "resolved_at": when,
+                        "reason": incident["reason"],
+                        "resolution": resolution,
+                    },
+                    "incident.recovered" if resolution == "recovered" else "incident.closed",
+                )

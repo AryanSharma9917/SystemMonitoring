@@ -35,6 +35,7 @@ import json
 import os
 import sqlite3
 import urllib.request
+import urllib.error
 
 assert os.getuid() != 0
 for route in ('health', 'ready'):
@@ -43,6 +44,15 @@ for route in ('health', 'ready'):
         assert 'status' in json.load(response)
 with urllib.request.urlopen('http://127.0.0.1:8000/metrics', timeout=3) as response:
     assert b'http_requests_total' in response.read()
+with urllib.request.urlopen('http://127.0.0.1:8000/', timeout=3) as response:
+    assert b'Sign in to your workspace' in response.read()
+with urllib.request.urlopen('http://127.0.0.1:8000/assets/app.js', timeout=3) as response:
+    assert b'/api/auth/login' in response.read()
+try:
+    urllib.request.urlopen('http://127.0.0.1:8000/api/v1/services', timeout=3)
+    raise AssertionError('Management API permitted anonymous access')
+except urllib.error.HTTPError as error:
+    assert error.code == 401
 with sqlite3.connect(os.environ['MONITOR_DATABASE_PATH']) as connection:
     connection.execute('PRAGMA foreign_keys=ON')
     connection.execute(

@@ -19,5 +19,6 @@ The application checks run on all branches and pull requests. Docker Hub
 publication is manual and produces commit-tagged images. Follow the README for
 local setup, quality checks, and container restart validation.
 
-This foundation now supports the [monitoring workflow](monitoring.md). Authentication,
-notifications and the customer-facing interface remain on the [roadmap](roadmap.md).
+This foundation now supports the [monitoring workflow](monitoring.md). The [administrator workspace](workspace.md) and [webhook delivery](notifications.md)
+now build on this foundation. Website polish and the final project release remain
+on the [roadmap](roadmap.md).

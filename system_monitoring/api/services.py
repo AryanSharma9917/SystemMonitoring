@@ -2,8 +2,9 @@
 
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, HTTPException, Query, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 
+from system_monitoring.auth import require_admin
 from system_monitoring.models import (
     CheckResponse,
     IncidentResponse,
@@ -13,7 +14,7 @@ from system_monitoring.models import (
 from system_monitoring.repository import MissingService, ServiceConflict
 from system_monitoring.targets import TargetBlocked
 
-router = APIRouter(prefix="/api/v1", tags=["Monitoring"])
+router = APIRouter(prefix="/api/v1", tags=["Monitoring"], dependencies=[Depends(require_admin)])
 Limit = Annotated[int, Query(ge=1, le=100)]
 Offset = Annotated[int, Query(ge=0)]
 

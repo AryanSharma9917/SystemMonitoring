@@ -1,6 +1,6 @@
 [project]
 name = "system-monitoring"
-version = "0.3.0"
+version = "0.4.0"
 description = "HTTP service monitoring and incident tracking."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
@@ -16,7 +16,7 @@ dependencies = [
 retail = ["pandas>=2.2,<3", "scikit-learn>=1.5,<2"]
 
 [dependency-groups]
-dev = ["httpx>=0.28,<1", "pytest>=8.3,<10", "ruff>=0.11,<1"]
+dev = ["httpx>=0.28,<1", "pytest>=8.3,<10", "ruff>=0.11,<1", "playwright>=1.50,<2"]
 
 [build-system]
 requires = ["hatchling>=1.27,<2"]

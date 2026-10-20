@@ -38,4 +38,6 @@ def ready(request: Request) -> ReadyResponse:
         raise HTTPException(503, "Persistent storage is unavailable") from error
     if request.app.state.settings.scheduler_enabled and not request.app.state.monitor.ready():
         raise HTTPException(503, "Monitoring scheduler is unavailable")
+    if request.app.state.settings.webhook_url and not request.app.state.delivery.ready():
+        raise HTTPException(503, "Webhook delivery worker is unavailable")
     return ReadyResponse()

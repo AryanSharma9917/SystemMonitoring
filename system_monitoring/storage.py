@@ -5,7 +5,7 @@ from collections.abc import Iterator
 from contextlib import closing, contextmanager
 from pathlib import Path
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 SCHEMA = (
     """CREATE TABLE services (
         id TEXT PRIMARY KEY,
@@ -79,10 +79,36 @@ class Database:
             connection.execute("SELECT id, revision, check_token FROM services LIMIT 1").fetchall()
             connection.execute("SELECT id FROM checks LIMIT 1").fetchall()
             connection.execute("SELECT id FROM incidents LIMIT 1").fetchall()
+            connection.execute("SELECT event_id FROM notifications LIMIT 1").fetchall()
+            connection.execute("SELECT username FROM administrators LIMIT 1").fetchall()
 
 
 # Each migration runs in the same transaction as its schema-version update.
 MIGRATIONS = {
+    3: (
+        "ALTER TABLE services ADD COLUMN availability_since TEXT",
+        "ALTER TABLE services ADD COLUMN availability_revision INTEGER NOT NULL DEFAULT 1",
+        """CREATE TABLE administrators (
+            id INTEGER PRIMARY KEY CHECK (id=1), username TEXT NOT NULL,
+            password_hash TEXT NOT NULL, failed_attempts INTEGER NOT NULL DEFAULT 0,
+            locked_until REAL NOT NULL DEFAULT 0
+        )""",
+        """CREATE TABLE sessions (
+            token_hash TEXT PRIMARY KEY NOT NULL, csrf_token TEXT NOT NULL,
+            expires_at REAL NOT NULL, created_at REAL NOT NULL
+        )""",
+        """CREATE TABLE notifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, event_id TEXT NOT NULL UNIQUE,
+            incident_id TEXT NOT NULL, service_id TEXT NOT NULL, event_type TEXT NOT NULL,
+            payload TEXT NOT NULL, created_at TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending'
+                CHECK(status IN ('pending','delivered','failed','cancelled')),
+            attempts INTEGER NOT NULL DEFAULT 0, next_attempt_at REAL NOT NULL DEFAULT 0,
+            last_error TEXT, delivered_at TEXT, lease_token TEXT,
+            lease_until REAL NOT NULL DEFAULT 0, UNIQUE(incident_id, event_type)
+        )""",
+        "CREATE INDEX notifications_pending ON notifications(status, next_attempt_at, id)",
+    ),
     2: (
         "ALTER TABLE services ADD COLUMN expected_status INTEGER NOT NULL DEFAULT 200",
         "ALTER TABLE services ADD COLUMN revision INTEGER NOT NULL DEFAULT 1",
