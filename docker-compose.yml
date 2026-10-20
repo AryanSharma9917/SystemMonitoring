@@ -1,11 +1,18 @@
 services:
   fastapi:
     build: .
+    image: system-monitoring:local
     ports:
       - "127.0.0.1:${API_PORT:-8000}:8000"
     environment:
       MONITOR_ENVIRONMENT: ${MONITOR_ENVIRONMENT:-development}
       MONITOR_LOG_LEVEL: ${MONITOR_LOG_LEVEL:-INFO}
+      MONITOR_APPROVED_ORIGINS: ${MONITOR_APPROVED_ORIGINS:-[]}
+      MONITOR_PRIVATE_ORIGINS: ${MONITOR_PRIVATE_ORIGINS:-[]}
+      MONITOR_SCHEDULER_ENABLED: ${MONITOR_SCHEDULER_ENABLED:-true}
+      MONITOR_CHECK_CONCURRENCY: ${MONITOR_CHECK_CONCURRENCY:-5}
+      MONITOR_SERVICE_LIMIT: ${MONITOR_SERVICE_LIMIT:-100}
+      MONITOR_HISTORY_PER_SERVICE: ${MONITOR_HISTORY_PER_SERVICE:-1000}
       MONITOR_DATABASE_PATH: /var/lib/system-monitoring/monitoring.sqlite3
     volumes:
       - application-data:/var/lib/system-monitoring

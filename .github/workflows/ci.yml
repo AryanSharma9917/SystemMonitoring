@@ -20,15 +20,38 @@ jobs:
         run: uv sync --locked --python 3.12
       - name: Check code quality
         run: |
-          uv run --locked ruff check system_monitoring apps.py tests
-          uv run --locked ruff format --check system_monitoring apps.py tests
+          uv run --locked ruff check system_monitoring apps.py tests scripts
+          uv run --locked ruff format --check system_monitoring apps.py tests scripts
       - name: Check application behavior
         run: uv run --locked pytest -q
       - name: Validate Compose configuration
         env:
           GRAFANA_ADMIN_PASSWORD: ci-configuration-validation-only
-        run: docker compose config --quiet
+        run: |
+          docker compose config --quiet
+          docker compose -f docker-compose.yml -f compose.demo.yml config --quiet
       - name: Build the application image
         run: docker build --tag system-monitoring:ci .
       - name: Check container startup and persistent storage
         run: bash scripts/check-container.sh system-monitoring:ci
+      - name: Exercise scheduled outage detection and recovery
+        env:
+          GRAFANA_ADMIN_PASSWORD: isolated-ci-stack-only
+          COMPOSE_PROJECT_NAME: monitoring-ci
+        run: |
+          docker tag system-monitoring:ci system-monitoring:local
+          docker compose -f docker-compose.yml -f compose.demo.yml up --wait --wait-timeout 90 --no-build
+          python scripts/demonstrate-outage.py
+          python scripts/check-stack.py
+      - name: Show stack logs after a failure
+        if: failure()
+        env:
+          GRAFANA_ADMIN_PASSWORD: isolated-ci-stack-only
+          COMPOSE_PROJECT_NAME: monitoring-ci
+        run: docker compose -f docker-compose.yml -f compose.demo.yml logs --tail 80
+      - name: Remove the isolated CI stack
+        if: always()
+        env:
+          GRAFANA_ADMIN_PASSWORD: isolated-ci-stack-only
+          COMPOSE_PROJECT_NAME: monitoring-ci
+        run: docker compose -f docker-compose.yml -f compose.demo.yml down --volumes
