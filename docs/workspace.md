@@ -4,7 +4,8 @@ The application serves its own HTML/CSS/JavaScript and SVG assets at `/` and `/a
 It does not require a Node runtime, CDN, analytics script or separate frontend server.
 The responsive workspace provides an overview, searchable/filterable service table,
 service details and response-time samples, incident history and webhook delivery status.
-The product's public companion website is a separate upcoming milestone.
+The separate [project website](https://aryansharma9917.github.io/SystemMonitoring/)
+introduces the product and links back to the operational guides.
 
 ## Accounts and sessions
 

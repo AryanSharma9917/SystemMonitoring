@@ -28,18 +28,28 @@ jobs:
         run: uv run --locked playwright install --with-deps chromium
       - name: Check the administrator workspace and alert delivery
         run: uv run --locked python scripts/check-browser.py --artifacts browser-artifacts
+      - name: Check the public website
+        run: uv run --locked python scripts/check-website.py --artifacts website-artifacts
       - name: Preserve browser screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: monitoring-workspace
           path: browser-artifacts/
+      - name: Preserve website screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: project-website
+          path: website-artifacts/
       - name: Validate Compose configuration
         env:
           GRAFANA_ADMIN_PASSWORD: ci-configuration-validation-only
         run: |
           docker compose config --quiet
           docker compose -f docker-compose.yml -f compose.demo.yml config --quiet
+          MONITOR_DOMAIN=monitor.example.com ACME_EMAIL=operator@example.com \
+            docker compose -f docker-compose.yml -f compose.production.yml config --quiet
       - name: Build the application image
         run: docker build --tag system-monitoring:ci .
       - name: Check container startup and persistent storage

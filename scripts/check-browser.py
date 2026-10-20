@@ -24,6 +24,7 @@ from system_monitoring.main import create_app
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--artifacts", default="/tmp/system-monitoring-browser")
+    parser.add_argument("--record", action="store_true", help="Save a WebM workflow recording")
     args = parser.parse_args()
     artifacts = Path(args.artifacts)
     artifacts.mkdir(parents=True, exist_ok=True)
@@ -82,7 +83,12 @@ def main():
                 browser = playwright.chromium.launch(
                     executable_path=executable, args=["--no-sandbox"]
                 )
-                page = browser.new_page(viewport={"width": 1440, "height": 1080})
+                context = browser.new_context(
+                    viewport={"width": 1440, "height": 1080},
+                    record_video_dir=str(artifacts) if args.record else None,
+                    record_video_size={"width": 1440, "height": 1080},
+                )
+                page = context.new_page()
                 errors = []
                 page.on("pageerror", lambda error: errors.append(str(error)))
                 page.goto(api_origin)
@@ -183,20 +189,31 @@ def main():
                 page.screenshot(path=str(artifacts / "workspace-desktop.png"), full_page=True)
                 page.reload()
                 expect(page.get_by_role("heading", name="Service overview")).to_be_visible()
-                page.set_viewport_size({"width": 390, "height": 844})
-                assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth+1")
-                page.screenshot(path=str(artifacts / "workspace-mobile.png"), full_page=True)
+                if not args.record:
+                    page.set_viewport_size({"width": 390, "height": 844})
+                    assert page.evaluate(
+                        "document.documentElement.scrollWidth <= window.innerWidth+1"
+                    )
+                    page.screenshot(path=str(artifacts / "workspace-mobile.png"), full_page=True)
                 page.get_by_role("button", name="Sign out", exact=True).click()
                 expect(
                     page.get_by_role("heading", name="Sign in to your workspace")
                 ).to_be_visible()
                 assert page.request.get(api_origin + "/api/v1/services").status == 401
                 assert not errors, errors
+                video = page.video
+                context.close()
+                if video:
+                    video.save_as(str(artifacts / "walkthrough.webm"))
+                    video.delete()
                 browser.close()
-            print(
-                "Browser verified: sign-in, service creation, outage/recovery, retries, "
-                "charts, pause/resume, restored sessions, mobile layout and logout."
+            coverage = (
+                "sign-in, service creation, outage/recovery, retries, charts, "
+                "pause/resume, restored sessions and logout"
             )
+            if not args.record:
+                coverage += ", including the mobile layout"
+            print(f"Browser verified: {coverage}.")
             print(f"Screenshots saved in {artifacts}")
         finally:
             server.should_exit = True

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Self-hosted HTTP monitoring with an administrator workspace, incident history and reliable webhook delivery. Built for small teams and isolated customer installations.">
+  <meta name="theme-color" content="#102c26">
+  <meta property="og:title" content="System Monitoring — Follow every failure through recovery">
+  <meta property="og:description" content="Your services, incidents and recovery. One self-hosted workspace.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://aryansharma9917.github.io/SystemMonitoring/assets/workspace.png">
+  <title>System Monitoring — Follow every failure through recovery</title>
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="header">
+  <a class="brand" href="./" aria-label="System Monitoring home"><img src="assets/icon.svg" alt="" width="30" height="30">System Monitoring</a>
+  <nav aria-label="Main navigation"><a href="#workspace">Workspace</a><a href="#start">Quick start</a><a href="guide.html">Guide</a><a class="nav-github" href="https://github.com/AryanSharma9917/SystemMonitoring">GitHub ↗</a></nav>
+</header>
+<main id="main">
+  <section class="hero wrap">
+<div class="eyebrow"><span class="status-dot"></span> Self-hosted · HTTP service monitoring</div>
+    <h1>Follow every failure<br>through <span>recovery.</span></h1>
+    <p class="hero-copy">Know which service needs attention, see what happened, and follow the recovery. A focused monitoring workspace that runs on your infrastructure.</p>
+    <div class="actions"><a class="button primary" href="#start">Start monitoring <span aria-hidden="true">↗</span></a><a class="button secondary" href="#walkthrough">See how it works <span aria-hidden="true">↓</span></a></div>
+    <div class="hero-notes"><span>No separate frontend build</span><span>Docker Compose</span><span>Your data, on your server</span></div>
+    <figure class="product-shot"><div class="window-bar"><div class="window-dots" aria-hidden="true">● ● ●</div><span>YOUR MONITORING WORKSPACE</span><span class="live-label">Actual application</span></div><img src="assets/workspace.png" alt="Administrator workspace showing three monitored services, observed success, response times and recent incidents" width="1440" height="1080" fetchpriority="high"><figcaption>Real application screenshot from a local demonstration. Names and observations are sample data.</figcaption></figure>
+  </section>
+  <section id="workspace" class="wrap section">
+    <div class="section-heading"><div><p class="eyebrow">A clear path from signal to action</p><h2>Less searching.<br>More understanding.</h2></div><p>For teams that need a practical view of their HTTP services without operating a distributed monitoring platform.</p></div>
+    <div class="features">
+      <article><span class="feature-number">01 / OBSERVE</span><h3>Checks with context</h3><p>Schedule bounded HTTP checks against approved targets. Track response times and observed success, with sample counts and retention limits.</p><a href="guide.html#architecture">Understand the checks ↗</a></article>
+      <article><span class="feature-number">02 / INVESTIGATE</span><h3>One incident, start to finish</h3><p>Consecutive failures open an incident. Follow its timeline and see recovery recorded when the service responds successfully again.</p><a href="#walkthrough">Walk through an outage ↗</a></article>
+      <article><span class="feature-number">03 / NOTIFY</span><h3>Delivery you can follow</h3><p>Durable webhook events survive restarts. See attempts, retries and recovery notifications in the same administrator workspace.</p><a href="https://github.com/AryanSharma9917/SystemMonitoring/blob/main/docs/notifications.md">Read the webhook contract ↗</a></article>
+    </div>
+  </section>
+  <section class="detail-section"><div class="wrap detail-grid"><div><p class="eyebrow">The detail behind the status</p><h2>What failed.<br>When it recovered.</h2><p>Open a service to inspect response times, retained observations and incident history. Edit its check settings or pause monitoring from one place.</p><ul class="check-list"><li>Administrator sign-in and revocable sessions</li><li>Explicit approval for public and private targets</li><li>Prometheus metrics and provisioned Grafana panels</li></ul><a class="text-link" href="guide.html#operations">Explore operations ↗</a></div><figure><img src="assets/service-details.png" alt="Payments API detail screen with response-time chart and outage and recovery observations" width="1440" height="1080"><figcaption>Real observations from a controlled failure and recovery.</figcaption></figure></div></section>
+  <section id="walkthrough" class="wrap section">
+    <p class="eyebrow">A repeatable demonstration</p><h2>Take a service down.<br>Watch the whole story.</h2>
+    <div class="steps"><article><span>01</span><h3>Register a target</h3><p>Start the isolated sample service and add its approved health URL.</p></article><article><span>02</span><h3>Simulate an outage</h3><p>Return HTTP 503. Scheduled checks cross the failure threshold and open one incident.</p></article><article><span>03</span><h3>Restore and verify</h3><p>Return HTTP 200 and see that same incident resolve. Inspect webhook delivery when configured.</p></article></div>
+    <div class="callout"><div><h3>Run it yourself</h3><p>The walkthrough uses a local sample service. No shared credentials or public control endpoint.</p></div><a class="button secondary" href="guide.html#demo">Open the demo guide ↗</a></div>
+    <details class="recording"><summary>Watch the recorded browser walkthrough</summary><video controls preload="none" poster="assets/workspace.png" aria-label="Recorded administrator workflow"><source src="assets/walkthrough.webm" type="video/webm"><track default kind="captions" src="assets/walkthrough.vtt" srclang="en" label="English">Your browser does not support WebM. <a href="assets/walkthrough.webm">Download the recording</a>.</video><p class="muted">Recorded against local sample targets: sign-in, service creation, outage, recovery and delivery retries. Mobile layout is verified separately in the browser check. <a href="guide.html#transcript">Read the text walkthrough</a>.</p></details>
+  </section>
+  <section id="start" class="start-section"><div class="wrap start-grid"><div><p class="eyebrow">From repository to workspace</p><h2>Your first installation.</h2><p>Bring Docker Engine and Compose v2. Choose your own passwords, approve the origins you want to monitor, and create your administrator account.</p><p class="muted">Local installation first. Use the HTTPS deployment guide before exposing the workspace.</p><a class="text-link" href="guide.html#install">Full installation guide ↗</a></div><div class="code-card"><div class="code-title"><span>TERMINAL · LOCAL SETUP</span><button type="button" class="copy" data-copy="install-code">Copy</button></div><pre><code id="install-code">git clone https://github.com/AryanSharma9917/SystemMonitoring.git
+cd SystemMonitoring
+cp .env.example .env
+# Edit .env: set GRAFANA_ADMIN_PASSWORD
+# and MONITOR_APPROVED_ORIGINS before starting.
+docker compose up --build -d
+docker compose exec fastapi python -m system_monitoring.admin</code></pre><p>Then open <code>http://localhost:8000</code> and sign in.</p><span class="copy-status" role="status" aria-live="polite"></span></div></div></section>
+  <section class="wrap section offering"><div><p class="eyebrow">A practical starting point</p><h2>Built for small teams.<br>Ready for your pilot.</h2><p>Use an isolated installation for your own services or a customer pilot. Setup, dashboard configuration, alert tuning and maintenance are a practical initial service offering.</p><p class="muted">One administrator and one application process per installation. Observed success is based on retained checks, not a contractual uptime SLA. Multi-tenant accounts, billing and distributed collectors are outside the current scope.</p></div><div class="offering-card"><h3>Talk through your use case</h3><p>Describe the services you need to monitor and how you want to receive incident events.</p><a class="button primary" href="https://github.com/AryanSharma9917/SystemMonitoring/discussions">Discuss a pilot ↗</a><a class="text-link" href="https://github.com/AryanSharma9917/SystemMonitoring/issues/new">Or open a project issue ↗</a><p class="muted small">Use project issues if Discussions is unavailable. Keep credentials and private infrastructure details out of public posts.</p></div></section>
+</main>
+<footer class="wrap footer"><a class="brand" href="./"><img src="assets/icon.svg" alt="" width="24" height="24">System Monitoring</a><p>Built by <a href="https://github.com/AryanSharma9917">Aryan Sharma</a></p><a href="guide.html">Documentation</a><a href="https://github.com/AryanSharma9917/SystemMonitoring">Source ↗</a></footer>
+</body>
+</html>
