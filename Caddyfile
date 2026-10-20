@@ -1,0 +1,20 @@
+{
+	admin off
+	email {$ACME_EMAIL}
+}
+
+{$MONITOR_DOMAIN} {
+	encode zstd gzip
+
+	@operational path /health /ready /metrics
+	respond @operational 404
+
+	reverse_proxy fastapi:8000
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "same-origin"
+		-Server
+	}
+}
