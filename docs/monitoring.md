@@ -152,22 +152,21 @@ prevents startup. Back up before upgrading and keep the old image for rollback;
 rollback requires restoring the matching database backup, not downgrading in place.
 
 For an offline backup, stop the application before copying the full application
-volume, then restart it. For an online backup, use SQLite's backup API instead of
-copying a live database file without its WAL. Example from the repository root:
+volume, then restart it. For an online backup, use the included command rather than
+copying a live database file without its WAL:
 
 ```bash
-docker compose exec -T fastapi python - <<'PY'
-import sqlite3
-with sqlite3.connect('/var/lib/system-monitoring/monitoring.sqlite3') as source:
-    with sqlite3.connect('/var/lib/system-monitoring/monitoring-backup.sqlite3') as target:
-        source.backup(target)
-PY
+docker compose exec -T fastapi python -m system_monitoring.backup backup \
+  /var/lib/system-monitoring/monitoring.sqlite3 \
+  /var/lib/system-monitoring/monitoring-backup.sqlite3
 ```
 
-Copy the backup to separate storage and verify restoration in an isolated instance.
+The command creates a consistent snapshot, checks integrity and refuses to overwrite an
+existing destination. Copy it to separate encrypted storage and verify restoration in
+an isolated instance. Follow the [backup, restore and rollback runbook](backups.md).
 Do not treat a backup in the same volume as disaster recovery. Incidents are retained
-until the service is deleted; check history keeps the most recent configured number
-per service (default 1000). Monitor disk usage and plan retention before a long-lived
+until the service is deleted; check history keeps the most recent configured number per
+service (default 1000). Monitor disk usage and plan retention before a long-lived
 customer deployment. Pausing preserves history. Deleting a service is permanent and
 invalidates in-flight results; use pause if you want to keep the evidence.
 
