@@ -1,10 +1,11 @@
 [project]
 name = "system-monitoring"
-version = "0.2.0"
-description = "A practical foundation for service monitoring and incident tracking."
+version = "0.3.0"
+description = "HTTP service monitoring and incident tracking."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "aiohttp>=3.12,<4",
     "fastapi>=0.115,<1",
     "pydantic-settings>=2.6,<3",
     "prometheus-client>=0.21,<1",

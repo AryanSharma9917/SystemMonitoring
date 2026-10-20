@@ -5,7 +5,7 @@ from collections.abc import Iterator
 from contextlib import closing, contextmanager
 from pathlib import Path
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 SCHEMA = (
     """CREATE TABLE services (
         id TEXT PRIMARY KEY,
@@ -58,9 +58,13 @@ class Database:
             if version == 0:
                 for statement in SCHEMA:
                     connection.execute(statement)
-                connection.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
-            elif version != SCHEMA_VERSION:
+                version = 1
+            if version > SCHEMA_VERSION:
                 raise RuntimeError("Database schema is newer than this application supports")
+            for target_version in range(version + 1, SCHEMA_VERSION + 1):
+                for statement in MIGRATIONS[target_version]:
+                    connection.execute(statement)
+            connection.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
         self.check()
 
     def check(self) -> None:
@@ -72,5 +76,37 @@ class Database:
             connection.execute("BEGIN IMMEDIATE")
             if connection.execute("PRAGMA user_version").fetchone()[0] != SCHEMA_VERSION:
                 raise RuntimeError("Database schema is not initialized")
-            connection.execute("SELECT id FROM services LIMIT 1").fetchall()
+            connection.execute("SELECT id, revision, check_token FROM services LIMIT 1").fetchall()
+            connection.execute("SELECT id FROM checks LIMIT 1").fetchall()
             connection.execute("SELECT id FROM incidents LIMIT 1").fetchall()
+
+
+# Each migration runs in the same transaction as its schema-version update.
+MIGRATIONS = {
+    2: (
+        "ALTER TABLE services ADD COLUMN expected_status INTEGER NOT NULL DEFAULT 200",
+        "ALTER TABLE services ADD COLUMN revision INTEGER NOT NULL DEFAULT 1",
+        "ALTER TABLE services ADD COLUMN consecutive_failures INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE services ADD COLUMN last_checked_at TEXT",
+        "ALTER TABLE services ADD COLUMN last_check_timestamp REAL",
+        "ALTER TABLE services ADD COLUMN last_outcome TEXT NOT NULL DEFAULT 'unknown'",
+        "ALTER TABLE services ADD COLUMN last_status_code INTEGER",
+        "ALTER TABLE services ADD COLUMN last_duration_seconds REAL",
+        "ALTER TABLE services ADD COLUMN last_error TEXT",
+        "ALTER TABLE services ADD COLUMN next_check_at REAL NOT NULL DEFAULT 0",
+        "ALTER TABLE services ADD COLUMN check_token TEXT",
+        "ALTER TABLE services ADD COLUMN check_lease_until REAL NOT NULL DEFAULT 0",
+        "ALTER TABLE incidents ADD COLUMN resolution TEXT",
+        """CREATE TABLE checks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            service_id TEXT NOT NULL REFERENCES services(id) ON DELETE CASCADE,
+            revision INTEGER NOT NULL,
+            checked_at TEXT NOT NULL,
+            outcome TEXT NOT NULL CHECK (outcome IN ('success', 'failure', 'blocked')),
+            status_code INTEGER,
+            duration_seconds REAL NOT NULL,
+            reason TEXT
+        )""",
+        "CREATE INDEX checks_service_history ON checks(service_id, id DESC)",
+    ),
+}
