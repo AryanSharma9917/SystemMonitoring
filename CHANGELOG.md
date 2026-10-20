@@ -23,6 +23,7 @@
 - Consistent live database backup, validated restore, upgrade and rollback practice.
 - Optional HTTPS reverse proxy for one isolated production installation.
 - Public project website with actual product screenshots and a recorded walkthrough.
+- Persistent light and dark modes across the workspace and public project website.
 - Browser, container, stack, backup and responsive website validation in CI.
 
 The supported initial production scope is one administrator and one application process

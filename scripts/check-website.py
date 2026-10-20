@@ -67,7 +67,9 @@ def main() -> None:
                 "chromium"
             )
             browser = playwright.chromium.launch(executable_path=executable, args=["--no-sandbox"])
-            context = browser.new_context(viewport={"width": 1440, "height": 1000})
+            context = browser.new_context(
+                viewport={"width": 1440, "height": 1000}, color_scheme="light"
+            )
             page = context.new_page()
             errors = []
             page.on("pageerror", lambda error: errors.append(str(error)))
@@ -80,14 +82,19 @@ def main() -> None:
                 "observed success, response times and recent incidents"
             )
             expect(page.get_by_alt_text(screenshot_description)).to_be_visible()
+            expect(page.locator("html")).to_have_attribute("data-theme", "light")
             assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth+1")
             page.screenshot(path=str(artifacts / "website-desktop.png"), full_page=True)
+            page.get_by_role("button", name="Use dark mode").click()
+            expect(page.locator("html")).to_have_attribute("data-theme", "dark")
+            page.screenshot(path=str(artifacts / "website-dark.png"), full_page=True)
             page.set_viewport_size({"width": 390, "height": 844})
             assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth+1")
             expect(page.get_by_role("link", name="Start monitoring")).to_be_visible()
             page.screenshot(path=str(artifacts / "website-mobile.png"), full_page=True)
             page.goto(origin + "/guide.html")
             expect(page.get_by_role("heading", name="A workspace you can run.")).to_be_visible()
+            expect(page.locator("html")).to_have_attribute("data-theme", "dark")
             expect(
                 page.get_by_role("heading", name="Prepare an HTTPS installation")
             ).to_be_visible()
@@ -99,7 +106,10 @@ def main() -> None:
         server.shutdown()
         server.server_close()
         thread.join(timeout=2)
-    print("Website verified: links, desktop and mobile layout, guide content and assets.")
+    print(
+        "Website verified: links, desktop and mobile layout, persistent dark mode, "
+        "guide content and assets."
+    )
 
 
 if __name__ == "__main__":
