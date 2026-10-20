@@ -10,7 +10,9 @@
     />
     <title>System Monitoring</title>
     <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
+    <script src="/assets/theme.js"></script>
     <link rel="stylesheet" href="/assets/styles.css" />
+    <link rel="stylesheet" href="/assets/theme.css" />
     <script src="/assets/app.js" defer></script>
   </head>
   <body>
@@ -43,6 +45,14 @@
         <span class="login-footer">YOUR MONITORING WORKSPACE</span>
       </div>
       <div class="login-side">
+        <button
+          class="theme-toggle login-theme-toggle"
+          type="button"
+          data-theme-toggle
+        >
+          <span data-theme-icon aria-hidden="true">☾</span
+          ><span data-theme-label>Dark mode</span>
+        </button>
         <form id="login-form" class="login-form">
           <span class="eyebrow muted">WELCOME BACK</span>
           <h2>Sign in to your workspace</h2>
@@ -132,6 +142,10 @@
             <span id="breadcrumb">Overview</span>
           </div>
           <div class="operator">
+            <button class="theme-toggle" type="button" data-theme-toggle>
+              <span data-theme-icon aria-hidden="true">☾</span
+              ><span data-theme-label>Dark mode</span>
+            </button>
             <span id="environment" class="environment">Development</span
             ><span class="avatar" aria-hidden="true">A</span
             ><span id="operator-name">Administrator</span
