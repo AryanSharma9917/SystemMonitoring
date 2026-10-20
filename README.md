@@ -9,6 +9,8 @@ the application itself, with no separate frontend build or external runtime asse
 history, observed availability, response-time charts, durable webhook delivery,
 consistent backups and an optional HTTPS deployment. The public project website uses
 real product screenshots and a recorded browser walkthrough.
+Both web interfaces follow the device color scheme by default and provide a persistent
+light/dark appearance control.
 
 [Project website](https://aryansharma9917.github.io/SystemMonitoring/) ·
 [Installation and operations](website/guide.html) ·
@@ -137,9 +139,10 @@ uv run --locked python scripts/check-browser.py --artifacts browser-artifacts
 
 The browser check uses its own temporary database, administrator, HTTP target and
 webhook receiver. It verifies actual navigation, outage/recovery, retry delivery,
-charts, editing, pause/resume, session restoration and mobile layout. Screenshots
-are saved as artifacts. `PLAYWRIGHT_CHROMIUM_EXECUTABLE` can select a system Chromium;
-otherwise the script uses an available `chromium` binary or Playwright's installation.
+charts, editing, pause/resume, persistent dark mode, session restoration and mobile
+layout. Screenshots are saved as artifacts. `PLAYWRIGHT_CHROMIUM_EXECUTABLE` can select
+a system Chromium; otherwise the script uses an available `chromium` binary or
+Playwright's installation.
 
 ```bash
 docker build -t system-monitoring:local .

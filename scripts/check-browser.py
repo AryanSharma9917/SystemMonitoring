@@ -85,6 +85,7 @@ def main():
                 )
                 context = browser.new_context(
                     viewport={"width": 1440, "height": 1080},
+                    color_scheme="light",
                     record_video_dir=str(artifacts) if args.record else None,
                     record_video_size={"width": 1440, "height": 1080},
                 )
@@ -95,12 +96,17 @@ def main():
                 expect(
                     page.get_by_role("heading", name="Sign in to your workspace")
                 ).to_be_visible()
+                expect(page.locator("html")).to_have_attribute("data-theme", "light")
                 assert page.request.get(api_origin + "/api/v1/services").status == 401
                 page.screenshot(path=str(artifacts / "sign-in.png"), full_page=True)
+                page.get_by_role("button", name="Use dark mode").click()
+                expect(page.locator("html")).to_have_attribute("data-theme", "dark")
+                page.screenshot(path=str(artifacts / "sign-in-dark.png"), full_page=True)
                 page.get_by_label("Username", exact=True).fill("admin")
                 page.get_by_label("Password", exact=True).fill(password)
                 page.get_by_role("button", name="Sign in", exact=False).click()
                 expect(page.get_by_role("heading", name="Service overview")).to_be_visible()
+                expect(page.locator("html")).to_have_attribute("data-theme", "dark")
                 page.get_by_role("button", name="+ Add service", exact=True).click()
                 page.get_by_label("Service name", exact=True).fill("Payments API")
                 page.get_by_label("Health check URL", exact=True).fill(target_origin + "/payments")
@@ -189,11 +195,29 @@ def main():
                 page.screenshot(path=str(artifacts / "workspace-desktop.png"), full_page=True)
                 page.reload()
                 expect(page.get_by_role("heading", name="Service overview")).to_be_visible()
+                expect(page.locator("html")).to_have_attribute("data-theme", "dark")
                 if not args.record:
                     page.set_viewport_size({"width": 390, "height": 844})
-                    assert page.evaluate(
-                        "document.documentElement.scrollWidth <= window.innerWidth+1"
+                    layout = page.evaluate(
+                        """() => ({
+                          viewport: window.innerWidth,
+                          page: document.documentElement.scrollWidth,
+                          overflowing: [...document.querySelectorAll('body *')]
+                            .filter((element) => {
+                              const box = element.getBoundingClientRect();
+                              return box.right > window.innerWidth + 1 || box.left < -1;
+                            })
+                            .slice(0, 10)
+                            .map((element) => ({
+                              tag: element.tagName,
+                              className: element.className,
+                              id: element.id,
+                              left: element.getBoundingClientRect().left,
+                              right: element.getBoundingClientRect().right,
+                            })),
+                        })"""
                     )
+                    assert layout["page"] <= layout["viewport"] + 1, layout
                     page.screenshot(path=str(artifacts / "workspace-mobile.png"), full_page=True)
                 page.get_by_role("button", name="Sign out", exact=True).click()
                 expect(
@@ -209,7 +233,7 @@ def main():
                 browser.close()
             coverage = (
                 "sign-in, service creation, outage/recovery, retries, charts, "
-                "pause/resume, restored sessions and logout"
+                "pause/resume, dark-mode persistence, restored sessions and logout"
             )
             if not args.record:
                 coverage += ", including the mobile layout"
