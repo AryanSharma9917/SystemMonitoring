@@ -3,18 +3,51 @@
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from system_monitoring.targets import normalize_url, origin
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="MONITOR_", env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_prefix="MONITOR_", env_file=".env", extra="ignore", hide_input_in_errors=True
+    )
 
     environment: Literal["development", "demo", "production"] = "development"
     database_path: Path = Path("var/monitoring.sqlite3")
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
+
+    admin_username: str = Field(default="admin", min_length=1, max_length=100)
+    admin_password: SecretStr | None = None
+    secure_cookies: bool = False
+    session_seconds: int = Field(default=28800, ge=300, le=86400)
+    webhook_url: SecretStr | None = None
+    webhook_allow_private: bool = False
+
+    @field_validator("admin_password", "webhook_url", mode="before")
+    @classmethod
+    def empty_secrets_are_unset(cls, value):
+        return None if value == "" else value
+
+    @field_validator("admin_password")
+    @classmethod
+    def strong_bootstrap_password(cls, value):
+        if value is not None and not 12 <= len(value.get_secret_value()) <= 1024:
+            raise ValueError("Administrator password must contain between 12 and 1024 characters")
+        return value
+
+    @model_validator(mode="after")
+    def validate_webhook(self):
+        if self.webhook_url:
+            value = normalize_url(self.webhook_url.get_secret_value())
+            if not value.startswith("https://") and not self.webhook_allow_private:
+                raise ValueError(
+                    "Webhooks require HTTPS unless internal delivery is explicitly enabled"
+                )
+        if self.environment == "production" and not self.secure_cookies:
+            raise ValueError("Production requires secure cookies and HTTPS")
+        return self
 
     approved_origins: list[str] = []
     private_origins: list[str] = []

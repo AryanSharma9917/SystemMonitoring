@@ -26,3 +26,15 @@ def test_settings_read_prefixed_environment_variables(monkeypatch, tmp_path):
 def test_invalid_configuration_is_rejected(values):
     with pytest.raises(ValidationError):
         Settings(_env_file=None, **values)
+
+
+def test_secret_values_are_not_echoed_in_configuration_errors():
+    with pytest.raises(ValidationError) as error:
+        Settings(_env_file=None, admin_password="tiny")
+    assert "tiny" not in str(error.value)
+
+
+def test_production_requires_https_cookies():
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None, environment="production", secure_cookies=False)
+    assert Settings(_env_file=None, environment="production", secure_cookies=True).secure_cookies

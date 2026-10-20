@@ -157,7 +157,7 @@ def test_storage_migration_preserves_existing_inventory(tmp_path):
     database.initialize()
     database.initialize()
     with database.connect() as connection:
-        assert connection.execute("PRAGMA user_version").fetchone()[0] == 2
+        assert connection.execute("PRAGMA user_version").fetchone()[0] == 3
         assert connection.execute("SELECT revision FROM services").fetchone()[0] == 1
         assert connection.execute("SELECT reason FROM incidents").fetchone()[0] == "Old outage"
 
