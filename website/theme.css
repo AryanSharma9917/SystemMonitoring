@@ -1,0 +1,114 @@
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 9px 12px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.theme-toggle:hover {
+  background: var(--soft);
+}
+html[data-theme="light"] {
+  color-scheme: light;
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #e7f1ec;
+  --muted: #a7b9b0;
+  --green: #67d2a0;
+  --line: #294139;
+  --paper: #0d1714;
+  --soft: #14231e;
+  --dark: #07100e;
+  color: var(--ink);
+  background: var(--paper);
+}
+html[data-theme="dark"] body,
+html[data-theme="dark"] .header {
+  background: var(--paper);
+}
+html[data-theme="dark"] .header,
+html[data-theme="dark"] .secondary,
+html[data-theme="dark"] .product-shot,
+html[data-theme="dark"] .detail-grid figure,
+html[data-theme="dark"] .features article,
+html[data-theme="dark"] .recording,
+html[data-theme="dark"] .guide-nav a {
+  border-color: var(--line);
+}
+html[data-theme="dark"] .secondary,
+html[data-theme="dark"] .product-shot,
+html[data-theme="dark"] .detail-grid figure,
+html[data-theme="dark"] .features article,
+html[data-theme="dark"] .recording,
+html[data-theme="dark"] .guide-nav a {
+  background: #111e1a;
+}
+html[data-theme="dark"] .window-bar {
+  color: #a7b9b0;
+  background: #182923;
+  border-color: var(--line);
+}
+html[data-theme="dark"] .callout,
+html[data-theme="dark"] .offering-card {
+  background: #14231e;
+  border-color: var(--line);
+}
+html[data-theme="dark"] .start-section,
+html[data-theme="dark"] .guide pre {
+  background: #07100e;
+}
+html[data-theme="dark"] .code-card {
+  background: #0d2019;
+  border-color: #294b3d;
+}
+html[data-theme="dark"] .guide pre {
+  color: #d8eee3;
+}
+html[data-theme="dark"] .guide td,
+html[data-theme="dark"] .guide th,
+html[data-theme="dark"] .footer {
+  border-color: var(--line);
+}
+html[data-theme="dark"] .primary {
+  color: #06120d;
+  background: #70d8a7;
+}
+html[data-theme="dark"] .primary:hover {
+  background: #91e7bd;
+}
+html[data-theme="dark"] .product-shot,
+html[data-theme="dark"] .detail-grid figure {
+  box-shadow: 0 24px 65px #0006;
+}
+
+@media (max-width: 800px) {
+  .theme-toggle [data-theme-label] {
+    display: none;
+  }
+  .theme-toggle {
+    padding-inline: 9px;
+  }
+  .header nav {
+    gap: 12px;
+  }
+}
+@media (max-width: 480px) {
+  .theme-toggle {
+    border: 0;
+    padding: 0;
+    background: transparent;
+  }
+  .header nav {
+    gap: 10px;
+  }
+}
