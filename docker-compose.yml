@@ -1,7 +1,7 @@
 services:
   fastapi:
     build: .
-    image: system-monitoring:local
+    image: ${MONITOR_IMAGE:-system-monitoring:local}
     ports:
       - "127.0.0.1:${API_PORT:-8000}:8000"
     environment:

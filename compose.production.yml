@@ -1,0 +1,57 @@
+services:
+  fastapi:
+    ports: !reset []
+    command:
+      - uvicorn
+      - system_monitoring.main:create_app
+      - --factory
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --no-access-log
+      - --proxy-headers
+      - --forwarded-allow-ips=*
+    environment:
+      MONITOR_ENVIRONMENT: production
+      MONITOR_SECURE_COOKIES: "true"
+
+  prometheus:
+    ports: !reset []
+
+  grafana:
+    ports: !reset []
+
+  proxy:
+    image: caddy@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d
+    depends_on:
+      fastapi:
+        condition: service_healthy
+    ports:
+      - "${PROXY_HTTP_PORT:-80}:${PROXY_HTTP_PORT:-80}"
+      - "${PROXY_HTTPS_PORT:-443}:${PROXY_HTTPS_PORT:-443}"
+      - "${PROXY_HTTPS_PORT:-443}:${PROXY_HTTPS_PORT:-443}/udp"
+    environment:
+      MONITOR_DOMAIN: ${MONITOR_DOMAIN:?Set MONITOR_DOMAIN in .env}
+      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL in .env}
+      NO_PROXY: fastapi,localhost,127.0.0.1
+      no_proxy: fastapi,localhost,127.0.0.1
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+
+volumes:
+  caddy-data:
+  caddy-config:

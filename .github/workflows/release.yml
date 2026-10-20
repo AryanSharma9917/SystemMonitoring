@@ -1,0 +1,68 @@
+name: Publish a reviewed release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  validate-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.23"
+      - name: Match the tag to the application version
+        run: test "v$(uv version --short)" = "$GITHUB_REF_NAME"
+      - name: Validate the release source
+        run: |
+          test -f "docs/releases/${GITHUB_REF_NAME}.md"
+          uv sync --locked --python 3.12
+          uv run --locked ruff check system_monitoring apps.py tests scripts
+          uv run --locked ruff format --check system_monitoring apps.py tests scripts
+          uv run --locked pytest -q
+          docker build --tag system-monitoring:release .
+          bash scripts/check-container.sh system-monitoring:release
+      - name: Sign in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Describe container tags
+        id: metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=sha
+      - name: Publish the validated container image
+        id: image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+      - name: Record immutable release metadata
+        env:
+          IMAGE_DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          {
+            echo "source_commit=$GITHUB_SHA"
+            echo "container_digest=$IMAGE_DIGEST"
+          } > release-metadata.txt
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "$GITHUB_REF_NAME"
+          --title "System Monitoring $GITHUB_REF_NAME"
+          --notes-file "docs/releases/${GITHUB_REF_NAME}.md"
+          release-metadata.txt

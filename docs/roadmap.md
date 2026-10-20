@@ -27,23 +27,23 @@ and clearly defined availability summaries. Acceptance: add-service → outage �
 alert → recovery works through the interface. See the [workspace](workspace.md) and
 [notification contract](notifications.md).
 
-## Website and demonstration polish — upcoming
+## Website and demonstration polish — implemented
 
 Companion website inspired by https://aryansharma9917.github.io/Codewise-CLI/,
 actual screenshots, installation guidance, architecture, contact/demo action,
-deployment guidance, backup/recovery practice, and a recorded walkthrough.
-Acceptance: a fresh installation supports a repeatable demonstration and the
-website accurately describes the software.
+deployment guidance, tested backup/recovery practice, and a recorded walkthrough.
+The website and its responsive layout are checked in Chromium and published from the
+reviewed `main` branch through GitHub Pages.
 
 Initial service offering: isolated installations with setup, dashboard configuration,
 alert tuning and maintenance. Multi-tenant accounts, billing, distributed collectors,
 and AI diagnosis need later implementation and operational validation.
 
 
-## Project release — after the final milestone
+## Project release — prepared, publish after final review
 
-After the website and deployment polish are finished and reviewed, validate the final
-`main` commit, finalize versioning/changelog/release notes, and create an annotated tag
-and GitHub release with the matching container artifact. This final release is an
-explicit project requirement. See the [release plan](release.md). No development
-milestone should be published as the final release early.
+Version 2.0.0, its changelog, release notes and tagged-release workflow are prepared.
+After this final feature branch is reviewed and merged, validate the exact `main`
+commit and push the annotated `v2.0.0` tag. The workflow publishes a commit-tagged
+container digest and creates the GitHub release from those reviewed notes. See the
+[release plan](release.md).

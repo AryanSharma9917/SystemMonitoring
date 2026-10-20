@@ -21,8 +21,9 @@ the combined demonstration files, include those same `-f` arguments with `exec`.
 The workspace is available at the application root after signing in.
 
 The script signs in using MONITOR_ADMIN_USERNAME (default admin) and
-MONITOR_ADMIN_PASSWORD from its process environment, then registers a new service, waits for a scheduled success, changes the sample
-to return 503, waits for two consecutive failures and exactly one open incident,
+MONITOR_ADMIN_PASSWORD from its process environment, then registers a new service,
+waits for a scheduled success, changes the sample to return 503, waits for two
+consecutive failures and exactly one open incident,
 restores HTTP 200, then verifies the same incident is recovered. It does not bypass
 the scheduler with manual checks. It normally takes roughly 30–45 seconds, with
 bounded waits that fail if monitoring is broken. Every invocation creates a distinct
@@ -77,6 +78,21 @@ provisioning and every panel query through Grafana. It expects actual service
 observations; run the demonstration before it. Empty-service dashboards correctly
 show missing data rather than invented healthy values. Custom local ports can be
 passed using each script's `--help` options.
+
+## Record the interface walkthrough
+
+The browser checker uses temporary local targets and a webhook receiver. Its normal run
+verifies desktop and mobile layouts. Add `--record` when you want a WebM walkthrough of
+sign-in, service creation, a manual outage and recovery, retry delivery, editing and
+logout:
+
+```bash
+uv run --locked python scripts/check-browser.py --record --artifacts browser-artifacts
+```
+
+The recording uses manual checks to keep the interface tour short. The outage script
+above separately verifies the real scheduler and failure threshold. Product media in
+`website/assets/` was generated through this browser workflow against sample data.
 
 ## Stop or return to the normal stack
 

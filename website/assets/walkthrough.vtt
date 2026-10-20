@@ -1,0 +1,22 @@
+WEBVTT
+
+00:00.000 --> 00:02.000
+Sign in to the administrator workspace.
+
+00:02.000 --> 00:04.000
+Create Payments API and add two sample services.
+
+00:04.000 --> 00:06.000
+Run a successful check, then simulate HTTP 503 and open an incident.
+
+00:06.000 --> 00:08.000
+Restore HTTP 200 and confirm recovery and response-time history.
+
+00:08.000 --> 00:10.000
+Pause, resume and edit monitoring settings.
+
+00:10.000 --> 00:11.500
+Review durable outage and recovery notification delivery.
+
+00:11.500 --> 00:12.200
+Return to the overview and sign out.
