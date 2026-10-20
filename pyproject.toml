@@ -1,6 +1,6 @@
 [project]
 name = "system-monitoring"
-version = "0.4.0"
+version = "2.0.0"
 description = "HTTP service monitoring and incident tracking."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"

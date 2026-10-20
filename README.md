@@ -6,8 +6,13 @@ provide operational metrics. The responsive administrator interface is served by
 the application itself, with no separate frontend build or external runtime assets.
 
 **Implemented:** administrator sign-in, service management, scheduled checks, incident
-history, observed availability, response-time charts, and durable webhook delivery.
-The companion website and deployment polish are next, followed by a project release.
+history, observed availability, response-time charts, durable webhook delivery,
+consistent backups and an optional HTTPS deployment. The public project website uses
+real product screenshots and a recorded browser walkthrough.
+
+[Project website](https://aryansharma9917.github.io/SystemMonitoring/) ·
+[Installation and operations](website/guide.html) ·
+[Release notes](docs/releases/v2.0.0.md)
 
 ## Start your workspace
 
@@ -48,6 +53,11 @@ Production requires HTTPS and `MONITOR_SECURE_COOKIES=true`; setting
 reverse proxy, keep operational routes and Prometheus internal. See the
 [administrator guide](docs/workspace.md) for authentication, account recovery and
 session behavior.
+
+For an isolated pilot installation, `compose.production.yml` adds a pinned Caddy
+reverse proxy with automatic HTTPS and removes direct host ports for the application,
+Prometheus and Grafana. Follow the [HTTPS deployment runbook](docs/deployment.md) rather
+than combining the production and demonstration overlays.
 
 ## Register and monitor services
 
@@ -165,6 +175,7 @@ Environment variables override `.env`. Never commit credentials; list values use
 | `MONITOR_WEBHOOK_ALLOW_PRIVATE` | `false` | Explicitly permit internal delivery; plain HTTP is restricted to internal IPs |
 | `MONITOR_ENVIRONMENT` | `development` | `development`, `demo`, or `production` |
 | `MONITOR_DATABASE_PATH` | `var/monitoring.sqlite3` | Local SQLite path; Compose fixes its internal path |
+| `MONITOR_IMAGE` | `system-monitoring:local` | Compose image name or reviewed release tag |
 | `MONITOR_LOG_LEVEL` | `INFO` | Application JSON log level |
 | `MONITOR_APPROVED_ORIGINS` | `[]` | Exact origins allowed for probes |
 | `MONITOR_PRIVATE_ORIGINS` | `[]` | Approved subset permitted to reach private addresses |
@@ -187,7 +198,10 @@ Schema migrations preserve the inventory and incident history and add session an
 notification storage transactionally. Back up before upgrading. Older applications
 cannot open a newer schema; rollback requires restoring the matching database backup.
 Application backups now contain password hashes, sessions and notification payloads:
-protect them as sensitive data. See [storage guidance](docs/monitoring.md#storage).
+protect them as sensitive data. `python -m system_monitoring.backup` creates a
+consistent live SQLite snapshot, validates restoration and refuses to overwrite files.
+See [backup, restore and rollback](docs/backups.md) and
+[storage guidance](docs/monitoring.md#storage).
 
 `docker compose down` retains named volumes. **`docker compose down -v` deletes them.**
 Pausing preserves history. Deleting a service removes its checks/incidents and cancels
@@ -204,9 +218,10 @@ tests/                   API, authentication, policy, persistence and delivery c
 provisioning/            Grafana datasource and operational dashboard
 examples/retail/         Original optional recommendation experiment
 docs/                   Setup, architecture, demonstration and release planning
+website/                Static project site, product media and installation guide
 ```
 
 See [the roadmap](docs/roadmap.md), [release plan](docs/release.md), and
-[changelog](CHANGELOG.md). The companion website will follow the visual reference at
-[Codewise-CLI](https://aryansharma9917.github.io/Codewise-CLI/). Historical images in
-`assets/` show the original version, not the current workspace.
+[changelog](CHANGELOG.md). Historical images in `assets/` show the original version;
+current product media lives in `website/assets/` and is generated from the browser
+verification workflow.

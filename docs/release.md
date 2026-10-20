@@ -1,16 +1,14 @@
-# Release after the final milestone
+# Publish version 2.0.0 after final review
 
-The project owner requested a release **after the final milestone is complete**.
-The dashboard branch is a development milestone, not a release. No tag or GitHub
-release should be created as part of this branch.
+The final feature milestone prepares version 2.0.0, but the release must point at the
+reviewed `main` commit. Do not tag the feature branch. Merge it first, confirm the
+resulting commit and repeat the release-candidate checks from that exact source.
 
 ## Finish the product
 
-Complete the companion website using the Codewise-CLI reference, real product
-screenshots and accurate installation/demo instructions. Finish deployment polish,
-HTTPS/reverse-proxy guidance, credential setup, backup restoration and a recorded
-walkthrough. Resolve blockers found by a fresh installation and review the final
-scope before describing the project as ready for customer pilots.
+The companion website, real screenshots, recorded browser walkthrough, HTTPS overlay,
+backup/restore tooling and operational runbooks are now included. The supported pilot
+scope remains one administrator and one application process per isolated customer.
 
 ## Validate the release candidate
 
@@ -30,16 +28,26 @@ and ensure operational interfaces remain internal.
 
 ## Publish the project release
 
-Choose the release version after reviewing existing tags and compatibility changes.
-Update the package version, lockfile, changelog and user-facing documentation together.
-Write release notes explaining delivered behavior, setup/upgrade steps, known limits,
-and validation. Include screenshot/demo links and the exact source commit.
+The repository already has the historical `v1.0` release from August 15, 2024. This
+modernization changes authentication, deployment and the application contract, so the
+selected release is `v2.0.0`. Package metadata, lockfile, changelog and
+`docs/releases/v2.0.0.md` must agree before tagging. The release notes explain setup,
+upgrade, rollback and known limits.
 
-After final validation and merge, create an annotated version tag and a GitHub release
-from that exact `main` commit. Publish the corresponding version/commit-tagged container
-image and record its digest. Do not relabel unrelated images or release an unreviewed
-feature-branch snapshot. Verify the release links and installation artifact after
-publication, then report the release URL and tag.
+After final validation and merge, create an annotated version tag from the exact main
+commit and push it:
 
-The user's release instruction applies at this final step; it is not a request to
-publish an incomplete dashboard or website now.
+```bash
+git switch main
+git pull --ff-only
+git tag -a v2.0.0 -m "System Monitoring 2.0.0"
+git push origin v2.0.0
+```
+
+The tag workflow repeats backend and container validation, publishes semver and commit
+tags to GitHub Container Registry, records the immutable digest, and creates the GitHub
+release. Verify the workflow, release URL, Pages URL, container digest and installation
+artifact after publication. Never move or recreate the release tag after publication.
+
+If any release check fails, fix it on a reviewed branch and tag a new patch version;
+do not replace an existing public tag.
