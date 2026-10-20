@@ -27,7 +27,12 @@ def error_response(
 def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(HTTPException)
     async def http_error(request: Request, error: HTTPException) -> JSONResponse:
-        codes = {404: "not_found", 405: "method_not_allowed", 503: "not_ready"}
+        codes = {
+            404: "not_found",
+            405: "method_not_allowed",
+            422: "validation_error",
+            503: "not_ready",
+        }
         return error_response(
             request,
             error.status_code,
