@@ -16,3 +16,5 @@ var/
 *.sqlite3-shm
 *.sqlite3-wal
 *.p
+
+browser-artifacts/
