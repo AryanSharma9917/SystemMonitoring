@@ -198,26 +198,32 @@ def main():
                 expect(page.locator("html")).to_have_attribute("data-theme", "dark")
                 if not args.record:
                     page.set_viewport_size({"width": 390, "height": 844})
-                    layout = page.evaluate(
-                        """() => ({
-                          viewport: window.innerWidth,
-                          page: document.documentElement.scrollWidth,
-                          overflowing: [...document.querySelectorAll('body *')]
-                            .filter((element) => {
-                              const box = element.getBoundingClientRect();
-                              return box.right > window.innerWidth + 1 || box.left < -1;
-                            })
-                            .slice(0, 10)
-                            .map((element) => ({
-                              tag: element.tagName,
-                              className: element.className,
-                              id: element.id,
-                              left: element.getBoundingClientRect().left,
-                              right: element.getBoundingClientRect().right,
-                            })),
-                        })"""
-                    )
-                    assert layout["page"] <= layout["viewport"] + 1, layout
+                    layout_deadline = time.monotonic() + 5
+                    while True:
+                        layout = page.evaluate(
+                            """() => ({
+                              viewport: window.innerWidth,
+                              page: document.documentElement.scrollWidth,
+                              overflowing: [...document.querySelectorAll('body *')]
+                                .filter((element) => {
+                                  const box = element.getBoundingClientRect();
+                                  return box.right > window.innerWidth + 1 || box.left < -1;
+                                })
+                                .slice(0, 10)
+                                .map((element) => ({
+                                  tag: element.tagName,
+                                  className: String(element.className),
+                                  id: element.id,
+                                  left: element.getBoundingClientRect().left,
+                                  right: element.getBoundingClientRect().right,
+                                })),
+                            })"""
+                        )
+                        if layout["page"] <= layout["viewport"] + 1:
+                            break
+                        if time.monotonic() >= layout_deadline:
+                            raise AssertionError(layout)
+                        page.wait_for_timeout(50)
                     page.screenshot(path=str(artifacts / "workspace-mobile.png"), full_page=True)
                 page.get_by_role("button", name="Sign out", exact=True).click()
                 expect(
