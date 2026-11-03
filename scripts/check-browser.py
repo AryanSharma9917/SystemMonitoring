@@ -60,6 +60,7 @@ def main():
                 private_origins=[target_origin],
                 webhook_url=target_origin + "/events",
                 webhook_allow_private=True,
+                scheduler_enabled=False,
                 log_level="WARNING",
             )
         )
@@ -160,8 +161,25 @@ def main():
                 page.get_by_role("button", name="Edit service", exact=True).click()
                 page.get_by_label("Service name", exact=True).fill("Payments API")
                 page.get_by_role("button", name="Save changes", exact=True).click()
+                notification_deadline = time.monotonic() + 30
+                while True:
+                    notification_response = page.request.get(
+                        api_origin + "/api/v1/notifications?limit=50&offset=0"
+                    )
+                    assert notification_response.status == 200
+                    notification_data = notification_response.json()
+                    delivered = [
+                        item
+                        for item in notification_data["deliveries"]
+                        if item["status"] == "delivered"
+                    ]
+                    if len(delivered) == 2:
+                        break
+                    if time.monotonic() >= notification_deadline:
+                        raise AssertionError(notification_data)
+                    page.wait_for_timeout(250)
                 page.locator('.sidebar [data-nav="notifications"]').click()
-                expect(page.locator("#view .badge.delivered")).to_have_count(2, timeout=20000)
+                expect(page.locator("#view .badge.delivered")).to_have_count(2)
                 assert len(target.events) == 3
                 assert target.events[0][0]["event_id"] == target.events[1][0]["event_id"]
                 assert len({event[0]["event_id"] for event in target.events}) == 2
@@ -198,27 +216,42 @@ def main():
                 expect(page.locator("html")).to_have_attribute("data-theme", "dark")
                 if not args.record:
                     page.set_viewport_size({"width": 390, "height": 844})
-                    layout = page.evaluate(
-                        """() => ({
-                          viewport: window.innerWidth,
-                          page: document.documentElement.scrollWidth,
-                          overflowing: [...document.querySelectorAll('body *')]
-                            .filter((element) => {
-                              const box = element.getBoundingClientRect();
-                              return box.right > window.innerWidth + 1 || box.left < -1;
-                            })
-                            .slice(0, 10)
-                            .map((element) => ({
-                              tag: element.tagName,
-                              className: element.className,
-                              id: element.id,
-                              left: element.getBoundingClientRect().left,
-                              right: element.getBoundingClientRect().right,
-                            })),
-                        })"""
+                    page.reload()
+                    expect(page.get_by_role("heading", name="Service overview")).to_be_visible()
+                    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
+                    layout_deadline = time.monotonic() + 5
+                    while True:
+                        layout = page.evaluate(
+                            """() => ({
+                              viewport: window.innerWidth,
+                              page: document.documentElement.scrollWidth,
+                              overflowing: [...document.querySelectorAll('body *')]
+                                .filter((element) => {
+                                  const box = element.getBoundingClientRect();
+                                  return box.right > window.innerWidth + 1 || box.left < -1;
+                                })
+                                .slice(0, 10)
+                                .map((element) => ({
+                                  tag: element.tagName,
+                                  className: String(element.className),
+                                  id: element.id,
+                                  left: element.getBoundingClientRect().left,
+                                  right: element.getBoundingClientRect().right,
+                                })),
+                            })"""
+                        )
+                        if layout["page"] <= layout["viewport"] + 1:
+                            break
+                        if time.monotonic() >= layout_deadline:
+                            raise AssertionError(layout)
+                        page.wait_for_timeout(50)
+                    assert page.locator(".table-scroll").first.evaluate(
+                        "element => element.scrollWidth > element.clientWidth"
                     )
-                    assert layout["page"] <= layout["viewport"] + 1, layout
-                    page.screenshot(path=str(artifacts / "workspace-mobile.png"), full_page=True)
+                    mobile_image = page.locator("body").screenshot(
+                        path=str(artifacts / "workspace-mobile.png")
+                    )
+                    assert int.from_bytes(mobile_image[16:20], "big") == 390
                 page.get_by_role("button", name="Sign out", exact=True).click()
                 expect(
                     page.get_by_role("heading", name="Sign in to your workspace")
