@@ -60,6 +60,7 @@ def main():
                 private_origins=[target_origin],
                 webhook_url=target_origin + "/events",
                 webhook_allow_private=True,
+                scheduler_enabled=False,
                 log_level="WARNING",
             )
         )
