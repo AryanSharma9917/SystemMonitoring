@@ -454,6 +454,9 @@ select {
 .table-scroll {
   overflow: auto;
   max-width: 100%;
+  min-width: 0;
+  width: 100%;
+  contain: inline-size;
 }
 table {
   width: 100%;
