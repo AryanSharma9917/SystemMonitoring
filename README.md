@@ -14,7 +14,7 @@ light/dark appearance control.
 
 [Project website](https://aryansharma9917.github.io/SystemMonitoring/) ·
 [Installation and operations](website/guide.html) ·
-[Release notes](docs/releases/v2.0.0.md)
+[Release notes](docs/releases/v2.0.1.md)
 
 ## Start your workspace
 

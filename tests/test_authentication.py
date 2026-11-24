@@ -66,6 +66,31 @@ def test_csrf_and_origin_validation_prevent_cross_site_changes(client):
     assert client.post("/api/v1/services", json=payload).status_code == 201
 
 
+def test_unexpected_or_malformed_host_cannot_replace_the_server_origin(app):
+    with TestClient(app) as browser:
+        unexpected = browser.post(
+            "/api/auth/login",
+            json=CREDENTIALS,
+            headers={"Host": "attacker.example", "Origin": "http://testserver"},
+        )
+        poisoned = browser.post(
+            "/api/auth/login",
+            json=CREDENTIALS,
+            headers={
+                "Host": "testserver/forged?path=",
+                "Origin": "http://attacker.example",
+            },
+        )
+        fallback = browser.post(
+            "/api/auth/login",
+            json=CREDENTIALS,
+            headers={"Host": "testserver/forged?path=", "Origin": "http://testserver"},
+        )
+        assert unexpected.status_code == 403
+        assert poisoned.status_code == 403
+        assert fallback.status_code == 200
+
+
 def test_expired_session_cannot_read_management_data(client, app):
     with app.state.database.connect() as connection:
         connection.execute("UPDATE sessions SET expires_at=?", (time.time() - 1,))

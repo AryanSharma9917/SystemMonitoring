@@ -18,6 +18,12 @@ jobs:
           version: "0.12.23"
       - name: Install Python and locked dependencies
         run: uv sync --locked --python 3.12
+      - name: Audit locked runtime dependencies
+        run: |
+          uv export --locked --no-dev --no-emit-project --format requirements-txt \
+            --output-file /tmp/runtime-requirements.txt
+          uv run --locked pip-audit --disable-pip --require-hashes \
+            --requirement /tmp/runtime-requirements.txt
       - name: Check code quality
         run: |
           uv run --locked ruff check system_monitoring apps.py tests scripts

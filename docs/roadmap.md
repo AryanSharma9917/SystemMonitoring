@@ -40,10 +40,9 @@ alert tuning and maintenance. Multi-tenant accounts, billing, distributed collec
 and AI diagnosis need later implementation and operational validation.
 
 
-## Project release — prepared, publish after final review
+## Security patch — prepared, publish after final review
 
-Version 2.0.0, its changelog, release notes and tagged-release workflow are prepared.
-After this final feature branch is reviewed and merged, validate the exact `main`
-commit and push the annotated `v2.0.0` tag. The workflow publishes a commit-tagged
-container digest and creates the GitHub release from those reviewed notes. See the
-[release plan](release.md).
+Version 2.0.1 updates affected framework dependencies, adds locked runtime dependency
+auditing and extends security regression coverage. After review and merge, validate the
+exact `main` commit before creating the `v2.0.1` tag. The existing `v2.0.0` tag remains
+unchanged. See the [release plan](release.md).

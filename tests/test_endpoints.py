@@ -10,6 +10,7 @@ def test_root_describes_application(client):
     response = client.get("/api/v1/about")
     assert response.status_code == 200
     assert response.json()["name"] == "System Monitoring"
+    assert response.json()["version"] == "2.0.1"
     assert response.json()["docs"] == "/docs"
 
 
@@ -43,6 +44,20 @@ def test_request_ids_are_generated_and_returned(client):
     second = client.get("/health")
     UUID(first.headers["X-Request-ID"])
     assert first.headers["X-Request-ID"] != second.headers["X-Request-ID"]
+
+
+def test_malformed_host_cannot_change_root_security_header_policy(client):
+    response = client.get("/", headers={"Host": "testserver/forged?path="})
+    assert response.status_code == 200
+    assert "script-src 'self'" in response.headers["content-security-policy"]
+
+
+def test_static_assets_keep_security_headers(client):
+    response = client.get("/assets/app.js")
+    assert response.status_code == 200
+    assert "default-src 'self'" in response.headers["content-security-policy"]
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["cache-control"] == "no-store"
 
 
 def test_not_found_and_wrong_method_have_consistent_errors(client):

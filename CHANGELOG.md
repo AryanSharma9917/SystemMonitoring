@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.1
+
+### Security baseline
+
+- Updated Starlette and OpenTelemetry API to patched dependency lines.
+- Added regression coverage for malformed Host headers, origin validation and static
+  interface security headers.
+- Added a CI audit of the complete locked runtime dependency set.
+- Corrected package and runtime version metadata after post-2.0.0 changes on `main`.
+
 ## 2.0.0
 
 ### Monitoring workspace
